@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "MFPSCharacter.generated.h"
 
+class UCombatComponent;
 class UCameraComponent;
 class USpringArmComponent;
 
@@ -18,11 +19,16 @@ public:
 	AMFPSCharacter();
 	
 	virtual void Tick(float DeltaTime) override;
+	
+	UCombatComponent* GetCombatComponent();
 
 protected:
 	virtual void BeginPlay() override;
 
 private:	
+	
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UCombatComponent> CombatComponent;
 	
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USkeletalMeshComponent> MeshFirstPerson;

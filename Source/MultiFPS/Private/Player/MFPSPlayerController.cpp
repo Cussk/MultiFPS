@@ -5,6 +5,8 @@
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Character/MFPSCharacter.h"
+#include "Components/CombatComponent.h"
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -24,7 +26,36 @@ void AMFPSPlayerController::BeginPlay()
 		EnhancedInputSubsystem->AddMappingContext(FPSIMC, 0);
 	}
 }
- 
+
+void AMFPSPlayerController::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+	
+	SetupFPSCharacter(InPawn);
+}
+
+void AMFPSPlayerController::AcknowledgePossession(class APawn* P)
+{
+	Super::AcknowledgePossession(P);
+	
+	SetupFPSCharacter(P);
+}
+
+void AMFPSPlayerController::OnUnPossess()
+{
+	MFPSCharacter = nullptr;
+	CombatComponent = nullptr;
+	
+	Super::OnUnPossess();
+}
+
+void AMFPSPlayerController::OnRep_Pawn()
+{
+	Super::OnRep_Pawn();
+	
+	SetupFPSCharacter(GetPawn());
+}
+
 void AMFPSPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
@@ -34,7 +65,22 @@ void AMFPSPlayerController::SetupInputComponent()
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ThisClass::InputLook);
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ThisClass::InputJump);
 	EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &ThisClass::InputCrouch);
+	EnhancedInputComponent->BindAction(CycleWeaponAction, ETriggerEvent::Started, this, &ThisClass::InputCycleWeapon);
+	EnhancedInputComponent->BindAction(ReloadWeaponAction, ETriggerEvent::Started, this, &ThisClass::InputReloadWeapon);
+	EnhancedInputComponent->BindAction(FireWeaponAction, ETriggerEvent::Started, this, &ThisClass::InputFireWeapon_Pressed);
+	EnhancedInputComponent->BindAction(FireWeaponAction, ETriggerEvent::Completed, this, &ThisClass::InputFireWeapon_Released);
+	EnhancedInputComponent->BindAction(AimWeaponAction, ETriggerEvent::Started, this, &ThisClass::InputAimWeapon_Pressed);
+	EnhancedInputComponent->BindAction(AimWeaponAction, ETriggerEvent::Completed, this, &ThisClass::InputAimWeapon_Released);
 	
+}
+
+void AMFPSPlayerController::SetupFPSCharacter(APawn* InPawn)
+{
+	MFPSCharacter = Cast<AMFPSCharacter>(InPawn);
+	if (IsValid(MFPSCharacter))
+	{
+		CombatComponent = MFPSCharacter->GetCombatComponent();
+	}
 }
 
 void AMFPSPlayerController::InputMove(const FInputActionValue& InputActionValue)
@@ -96,5 +142,53 @@ void AMFPSPlayerController::InputCrouch()
 	if (IsValid(CharacterMovementComponent))
 	{
 		CharacterMovementComponent->bWantsToCrouch = !CharacterMovementComponent->bWantsToCrouch;
+	}
+}
+
+void AMFPSPlayerController::InputCycleWeapon()
+{
+	if (CombatComponent)
+	{
+		CombatComponent->InitiateCycleWeapon();
+	}
+}
+
+void AMFPSPlayerController::InputReloadWeapon()
+{
+	if (CombatComponent)
+	{
+		CombatComponent->InitiateReloadWeapon();
+	}
+}
+
+void AMFPSPlayerController::InputFireWeapon_Pressed()
+{
+	if (CombatComponent)
+	{
+		CombatComponent->InitiateFireWeapon_Pressed();
+	}
+}
+
+void AMFPSPlayerController::InputFireWeapon_Released()
+{
+	if (CombatComponent)
+	{
+		CombatComponent->InitiateFireWeapon_Released();
+	}
+}
+
+void AMFPSPlayerController::InputAimWeapon_Pressed()
+{
+	if (CombatComponent)
+	{
+		CombatComponent->InitiateAim_Pressed();
+	}
+}
+
+void AMFPSPlayerController::InputAimWeapon_Released()
+{
+	if (CombatComponent)
+	{
+		CombatComponent->InitiateAim_Released();
 	}
 }

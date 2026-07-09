@@ -4,6 +4,7 @@
 #include "Character/MFPSCharacter.h"
 
 #include "Camera/CameraComponent.h"
+#include "Components/CombatComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -37,6 +38,9 @@ AMFPSCharacter::AMFPSCharacter()
 	GetMesh()->bOnlyOwnerSee = false;
 	GetMesh()->bOwnerNoSee = true;
 	GetMesh()->bReceivesDecals = false;
+	
+	CombatComponent = CreateDefaultSubobject<UCombatComponent>("CombatComponent");
+	CombatComponent->SetIsReplicated(true);
 }
 
 void AMFPSCharacter::BeginPlay()
@@ -47,4 +51,9 @@ void AMFPSCharacter::BeginPlay()
 void AMFPSCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+}
+
+UCombatComponent* AMFPSCharacter::GetCombatComponent()
+{
+	return CombatComponent;
 }

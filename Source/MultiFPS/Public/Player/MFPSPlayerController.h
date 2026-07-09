@@ -6,6 +6,8 @@
 #include "GameFramework/PlayerController.h"
 #include "MFPSPlayerController.generated.h"
 
+class AMFPSCharacter;
+class UCombatComponent;
 struct FInputActionValue;
 class UInputAction;
 class UInputMappingContext;
@@ -19,9 +21,13 @@ class MULTIFPS_API AMFPSPlayerController : public APlayerController
 	
 public:
 	AMFPSPlayerController();
+	virtual void AcknowledgePossession(APawn* P) override;
+	virtual void OnRep_Pawn() override;
 	
 protected:
 	virtual void BeginPlay() override;
+	virtual void OnPossess(APawn* InPawn) override;
+	virtual void OnUnPossess() override;
 	virtual void SetupInputComponent() override;
 	
 private:
@@ -40,8 +46,34 @@ private:
 	UPROPERTY(EditAnywhere, Category="MFPS|Input")
 	TObjectPtr<UInputAction> CrouchAction;
 	
+	UPROPERTY(EditAnywhere, Category="MFPS|Input")
+	TObjectPtr<UInputAction> CycleWeaponAction;
+	
+	UPROPERTY(EditAnywhere, Category="MFPS|Input")
+	TObjectPtr<UInputAction> AimWeaponAction;
+	
+	UPROPERTY(EditAnywhere, Category="MFPS|Input")
+	TObjectPtr<UInputAction> FireWeaponAction;
+	
+	UPROPERTY(EditAnywhere, Category="MFPS|Input")
+	TObjectPtr<UInputAction> ReloadWeaponAction;
+	
+	UPROPERTY()
+	AMFPSCharacter* MFPSCharacter;
+	
+	UPROPERTY()
+	UCombatComponent* CombatComponent;
+	
+	void SetupFPSCharacter(APawn* InPawn);
+	
 	void InputMove(const FInputActionValue& InputActionValue);
 	void InputLook(const FInputActionValue& InputActionValue);
 	void InputJump();
 	void InputCrouch();
+	void InputCycleWeapon();
+	void InputReloadWeapon();
+	void InputFireWeapon_Pressed();
+	void InputFireWeapon_Released();
+	void InputAimWeapon_Pressed();
+	void InputAimWeapon_Released();
 };
