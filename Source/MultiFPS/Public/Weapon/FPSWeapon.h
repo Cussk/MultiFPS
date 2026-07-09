@@ -1,0 +1,35 @@
+﻿// Copyright Kyle Cuss and Cuss Programming
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
+#include "GameFramework/Actor.h"
+#include "FPSWeapon.generated.h"
+
+UCLASS()
+class MULTIFPS_API AFPSWeapon : public AActor
+{
+	GENERATED_BODY()
+
+public:
+	AFPSWeapon();
+	
+	USkeletalMeshComponent* GetMeshFirstPerson() const;
+	USkeletalMeshComponent* GetMeshThirdPerson() const;
+	
+	void AttachToOwningPawn() const;
+
+protected:
+	virtual void BeginPlay() override;
+	
+	UPROPERTY(EditAnywhere, Category="MFPS|WeaponType")
+	FGameplayTag WeaponTypeTag;
+
+private:
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<USkeletalMeshComponent> MeshFirstPerson;
+	
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<USkeletalMeshComponent> MeshThirdPerson;
+};

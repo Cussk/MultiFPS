@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Interfaces/PlayerInterface.h"
 #include "MFPSCharacter.generated.h"
 
 class UCombatComponent;
@@ -11,7 +12,7 @@ class UCameraComponent;
 class USpringArmComponent;
 
 UCLASS()
-class MULTIFPS_API AMFPSCharacter : public ACharacter
+class MULTIFPS_API AMFPSCharacter : public ACharacter, public IPlayerInterface
 {
 	GENERATED_BODY()
 
@@ -19,7 +20,10 @@ public:
 	AMFPSCharacter();
 	
 	virtual void Tick(float DeltaTime) override;
+	virtual void PossessedBy(AController* NewController) override;
+	virtual FWeaponSocketAlignment GetWeaponSocketAlignment_Implementation(const FGameplayTag& WeaponType) const override;
 	
+	UFUNCTION(BlueprintCallable)
 	UCombatComponent* GetCombatComponent();
 
 protected:

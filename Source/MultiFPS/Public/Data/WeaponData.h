@@ -1,0 +1,22 @@
+﻿// Copyright Kyle Cuss and Cuss Programming
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
+#include "Engine/DataAsset.h"
+#include "Types/WeaponTypes.h"
+#include "WeaponData.generated.h"
+
+/**
+ * 
+ */
+UCLASS()
+class MULTIFPS_API UWeaponData : public UDataAsset
+{
+	GENERATED_BODY()
+	
+public:
+	UPROPERTY(EditDefaultsOnly, Category = "MFPS|WeaponData|Weapons")
+	TMap<FGameplayTag, FWeaponSocketAlignment> WeaponSocketAlignments;
+};

@@ -6,6 +6,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CombatComponent.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Data/WeaponData.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
@@ -53,7 +54,20 @@ void AMFPSCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+void AMFPSCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	
+	CombatComponent->SpawnInventory();
+}
+
 UCombatComponent* AMFPSCharacter::GetCombatComponent()
 {
 	return CombatComponent;
+}
+
+FWeaponSocketAlignment AMFPSCharacter::GetWeaponSocketAlignment_Implementation(const FGameplayTag& WeaponType) const
+{
+	checkf(CombatComponent->WeaponData, TEXT("No Weapon Data set on CombatComponent"))
+	return CombatComponent->WeaponData->WeaponSocketAlignments.FindChecked(WeaponType);
 }
