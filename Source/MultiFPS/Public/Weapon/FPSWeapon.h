@@ -20,12 +20,13 @@ public:
 	USkeletalMeshComponent* GetMeshThirdPerson() const;
 	
 	void AttachToOwningPawn() const;
-
-protected:
-	virtual void BeginPlay() override;
+	void HideMeshes() const;
 	
 	UPROPERTY(EditAnywhere, Category="MFPS|WeaponType")
 	FGameplayTag WeaponTypeTag;
+
+protected:
+	virtual void BeginPlay() override;
 
 private:
 	UPROPERTY(VisibleAnywhere)

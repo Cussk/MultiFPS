@@ -49,6 +49,16 @@ void AMFPSCharacter::BeginPlay()
 	Super::BeginPlay();
 }
 
+void AMFPSCharacter::BeginDestroy()
+{
+	if (IsValid(CombatComponent))
+	{
+		CombatComponent->DestroyInventory();
+	}
+	
+	Super::BeginDestroy();
+}
+
 void AMFPSCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);

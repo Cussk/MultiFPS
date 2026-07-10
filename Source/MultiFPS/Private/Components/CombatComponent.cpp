@@ -6,18 +6,21 @@
 #include "Data/WeaponData.h"
 #include "Engine/Engine.h"
 #include "GameFramework/Pawn.h"
+#include "Net/UnrealNetwork.h"
 #include "Weapon/FPSWeapon.h"
 
 
 UCombatComponent::UCombatComponent()
 {
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
 }
 
-
-void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
+	DOREPLIFETIME(UCombatComponent, Inventory);
+	DOREPLIFETIME(UCombatComponent, CurrentWeapon);
 }
 
 void UCombatComponent::InitiateCycleWeapon()
@@ -50,18 +53,42 @@ void UCombatComponent::InitiateAim_Released()
 	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, TEXT("InitiateAim_Released"), false);
 }
 
+void UCombatComponent::EquipWeapon(AFPSWeapon* Weapon)
+{
+	CurrentWeapon = Weapon;
+	CurrentWeapon->AttachToOwningPawn();
+}
+
 void UCombatComponent::SpawnInventory()
 {
-	AFPSWeapon* NewWeapon = SpawnWeapon(DefaultWeaponClass);
-	if (IsValid(NewWeapon))
+	if (GetOwner()->GetLocalRole() < ROLE_Authority)
 	{
-		NewWeapon->AttachToOwningPawn();
+		return;
+	}
+	
+	for (const TSubclassOf<AFPSWeapon>& WeaponClass : DefaultWeaponClasses)
+	{
+		AFPSWeapon* NewWeapon = SpawnWeapon(WeaponClass);
+		Inventory.AddUnique(NewWeapon);
+		NewWeapon->HideMeshes();
+	}
+	
+	if (Inventory.Num() > 0)
+	{
+		EquipWeapon(Inventory[0]);
 	}
 }
 
 void UCombatComponent::DestroyInventory()
 {
-	//TODO: Destroy inventory once made
+	for ( AFPSWeapon* Weapon : Inventory)
+	{
+		if (IsValid(Weapon))
+		{
+			Weapon->Destroy();
+		}
+	}
+	Inventory.Empty();
 }
 
 AFPSWeapon* UCombatComponent::SpawnWeapon(TSubclassOf<AFPSWeapon> WeaponClass) const
@@ -85,3 +112,17 @@ AFPSWeapon* UCombatComponent::SpawnWeapon(TSubclassOf<AFPSWeapon> WeaponClass) c
 	return GetWorld()->SpawnActor<AFPSWeapon>(WeaponClass, SpawnParams);
 }
 
+void UCombatComponent::OnRep_CurrentWeapon(const AFPSWeapon* LastWeapon) const
+{
+	if (!IsValid(CurrentWeapon))
+	{
+		return;
+	}
+	
+	CurrentWeapon->AttachToOwningPawn();
+	
+	if (IsValid(LastWeapon))
+	{
+		LastWeapon->HideMeshes();
+	}
+}

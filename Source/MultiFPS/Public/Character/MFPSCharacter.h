@@ -19,6 +19,8 @@ class MULTIFPS_API AMFPSCharacter : public ACharacter, public IPlayerInterface
 public:
 	AMFPSCharacter();
 	
+	virtual void BeginPlay() override;
+	virtual void BeginDestroy() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void PossessedBy(AController* NewController) override;
 	
@@ -33,7 +35,6 @@ public:
 	UCombatComponent* GetCombatComponent();
 
 protected:
-	virtual void BeginPlay() override;
 
 private:	
 	

@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "Types/WeaponTypes.h"
 #include "CombatComponent.generated.h"
 
 class UWeaponData;
@@ -19,7 +18,7 @@ class MULTIFPS_API UCombatComponent : public UActorComponent
 public:
 	UCombatComponent();
 	
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	void InitiateCycleWeapon();
 	void InitiateFireWeapon_Pressed();
@@ -28,6 +27,7 @@ public:
 	void InitiateAim_Pressed();
 	void InitiateAim_Released();
 	
+	void EquipWeapon(AFPSWeapon* Weapon);
 	void SpawnInventory();
 	void DestroyInventory();
 	
@@ -39,8 +39,17 @@ protected:
 	
 private:
 	
+	UPROPERTY(Transient, ReplicatedUsing = OnRep_CurrentWeapon)
+	TObjectPtr<AFPSWeapon> CurrentWeapon;
+	
+	UFUNCTION()
+	void OnRep_CurrentWeapon(const AFPSWeapon* LastWeapon) const;
+	
+	UPROPERTY(Transient, Replicated)
+	TArray<AFPSWeapon*> Inventory;
+	
 	UPROPERTY(EditDefaultsOnly, Category="MFPS|Weapon")
-	TSubclassOf<AFPSWeapon> DefaultWeaponClass;
+	TArray<TSubclassOf<AFPSWeapon>> DefaultWeaponClasses;
 	
 	AFPSWeapon* SpawnWeapon(TSubclassOf<AFPSWeapon> WeaponClass) const;
 };

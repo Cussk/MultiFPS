@@ -21,7 +21,6 @@ AFPSWeapon::AFPSWeapon()
 	MeshFirstPerson->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::OnlyTickPoseWhenRendered;
 	MeshFirstPerson->bReceivesDecals = false;
 	MeshFirstPerson->CastShadow = false;
-	MeshFirstPerson->SetHiddenInGame(true);
 	SetRootComponent(MeshFirstPerson);
 	
 	MeshThirdPerson = CreateDefaultSubobject<USkeletalMeshComponent>("MeshThirdPerson");
@@ -29,7 +28,8 @@ AFPSWeapon::AFPSWeapon()
 	MeshThirdPerson->bReceivesDecals = false;
 	MeshThirdPerson->CastShadow = true;
 	MeshThirdPerson->SetupAttachment(MeshFirstPerson);
-	MeshThirdPerson->SetHiddenInGame(true);
+	
+	HideMeshes();
 }
 
 void AFPSWeapon::OnRep_Instigator()
@@ -91,4 +91,10 @@ void AFPSWeapon::SetMeshVisibilities(const APawn* OwningPawn) const
 		MeshFirstPerson->SetHiddenInGame(true);
 		MeshThirdPerson->SetHiddenInGame(false);
 	}
+}
+
+void AFPSWeapon::HideMeshes() const
+{
+	MeshFirstPerson->SetHiddenInGame(true);
+	MeshThirdPerson->SetHiddenInGame(true);
 }
