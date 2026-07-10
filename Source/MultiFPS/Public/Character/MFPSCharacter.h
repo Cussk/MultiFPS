@@ -21,7 +21,13 @@ public:
 	
 	virtual void Tick(float DeltaTime) override;
 	virtual void PossessedBy(AController* NewController) override;
-	virtual FWeaponSocketAlignment GetWeaponSocketAlignment_Implementation(const FGameplayTag& WeaponType) const override;
+	
+	/** Player Interface */
+	virtual FWeaponSocketAlignment GetTPWeaponSocketAlignment_Implementation(const FGameplayTag& WeaponType) const override;
+	virtual FWeaponSocketAlignment GetFPWeaponSocketAlignment_Implementation(const FGameplayTag& WeaponType) const override;
+	virtual USkeletalMeshComponent* GetMeshFirstPerson_Implementation() const override;
+	virtual USkeletalMeshComponent* GetMeshThirdPerson_Implementation() const override;
+	/** ~Player Interface */
 	
 	UFUNCTION(BlueprintCallable)
 	UCombatComponent* GetCombatComponent();

@@ -25,5 +25,14 @@ class MULTIFPS_API IPlayerInterface
 public:
 	
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	FWeaponSocketAlignment GetWeaponSocketAlignment(const FGameplayTag& WeaponType) const;
+	FWeaponSocketAlignment GetTPWeaponSocketAlignment(const FGameplayTag& WeaponType) const;
+	
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	FWeaponSocketAlignment GetFPWeaponSocketAlignment(const FGameplayTag& WeaponType) const;
+	
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	USkeletalMeshComponent* GetMeshFirstPerson() const;
+	
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	USkeletalMeshComponent* GetMeshThirdPerson() const;
 };

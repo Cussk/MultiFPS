@@ -18,5 +18,8 @@ class MULTIFPS_API UWeaponData : public UDataAsset
 	
 public:
 	UPROPERTY(EditDefaultsOnly, Category = "MFPS|WeaponData|Weapons")
-	TMap<FGameplayTag, FWeaponSocketAlignment> WeaponSocketAlignments;
+	TMap<FGameplayTag, FWeaponSocketAlignment> TPWeaponSocketAlignments;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "MFPS|WeaponData|Weapons")
+	TMap<FGameplayTag, FWeaponSocketAlignment> FPWeaponSocketAlignments;
 };

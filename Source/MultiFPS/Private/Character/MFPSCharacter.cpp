@@ -66,8 +66,24 @@ UCombatComponent* AMFPSCharacter::GetCombatComponent()
 	return CombatComponent;
 }
 
-FWeaponSocketAlignment AMFPSCharacter::GetWeaponSocketAlignment_Implementation(const FGameplayTag& WeaponType) const
+FWeaponSocketAlignment AMFPSCharacter::GetTPWeaponSocketAlignment_Implementation(const FGameplayTag& WeaponType) const
 {
 	checkf(CombatComponent->WeaponData, TEXT("No Weapon Data set on CombatComponent"))
-	return CombatComponent->WeaponData->WeaponSocketAlignments.FindChecked(WeaponType);
+	return CombatComponent->WeaponData->TPWeaponSocketAlignments.FindChecked(WeaponType);
+}
+
+FWeaponSocketAlignment AMFPSCharacter::GetFPWeaponSocketAlignment_Implementation(const FGameplayTag& WeaponType) const
+{
+	checkf(CombatComponent->WeaponData, TEXT("No Weapon Data set on CombatComponent"))
+	return CombatComponent->WeaponData->FPWeaponSocketAlignments.FindChecked(WeaponType);
+}
+
+USkeletalMeshComponent* AMFPSCharacter::GetMeshFirstPerson_Implementation() const
+{
+	return MeshFirstPerson;
+}
+
+USkeletalMeshComponent* AMFPSCharacter::GetMeshThirdPerson_Implementation() const
+{
+	return GetMesh();
 }

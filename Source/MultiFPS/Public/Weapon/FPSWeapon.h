@@ -14,6 +14,7 @@ class MULTIFPS_API AFPSWeapon : public AActor
 
 public:
 	AFPSWeapon();
+	virtual void OnRep_Instigator() override;
 	
 	USkeletalMeshComponent* GetMeshFirstPerson() const;
 	USkeletalMeshComponent* GetMeshThirdPerson() const;
@@ -32,4 +33,6 @@ private:
 	
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USkeletalMeshComponent> MeshThirdPerson;
+	
+	void SetMeshVisibilities(const APawn* OwningPawn) const;
 };
