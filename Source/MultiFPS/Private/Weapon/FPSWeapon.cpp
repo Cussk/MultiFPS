@@ -30,12 +30,14 @@ AFPSWeapon::AFPSWeapon()
 	MeshThirdPerson->SetupAttachment(MeshFirstPerson);
 	
 	HideMeshes();
+	
+	AimFOV = 65.0f;
 }
 
 void AFPSWeapon::OnRep_Instigator()
 {
 	Super::OnRep_Instigator();
-	AttachToOwningPawn();
+	RefreshWeaponPresentation();
 }
 
 void AFPSWeapon::BeginPlay()
@@ -51,6 +53,12 @@ USkeletalMeshComponent* AFPSWeapon::GetMeshFirstPerson() const
 USkeletalMeshComponent* AFPSWeapon::GetMeshThirdPerson() const
 {
 	return MeshThirdPerson;
+}
+
+void AFPSWeapon::SetEquippedPresentation(bool bEquipped)
+{
+	bShouldBeVisibleAsEquipped = bEquipped;
+	RefreshWeaponPresentation();
 }
 
 void AFPSWeapon::AttachToOwningPawn() const
@@ -77,6 +85,29 @@ void AFPSWeapon::AttachToOwningPawn() const
 	MeshThirdPerson->SetRelativeLocation(TPSocketAlignment.SocketLocation);
 	MeshThirdPerson->SetRelativeRotation(TPSocketAlignment.SocketRotation);
 	MeshThirdPerson->SetRelativeScale3D(TPSocketAlignment.SocketScale);
+}
+
+void AFPSWeapon::RefreshWeaponPresentation() const
+{
+	APawn* OwningPawn = GetInstigator();
+
+	if (!IsValid(OwningPawn) ||
+		!OwningPawn->Implements<UPlayerInterface>())
+	{
+		HideMeshes();
+		return;
+	}
+
+	AttachToOwningPawn();
+
+	if (bShouldBeVisibleAsEquipped)
+	{
+		SetMeshVisibilities(OwningPawn);
+	}
+	else
+	{
+		HideMeshes();
+	}
 }
 
 void AFPSWeapon::SetMeshVisibilities(const APawn* OwningPawn) const

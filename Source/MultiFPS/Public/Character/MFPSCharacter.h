@@ -37,6 +37,12 @@ public:
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MFPS|Components")
 	TObjectPtr<UCombatComponent> CombatComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MFPS|Camera")
+	TObjectPtr<UCameraComponent> FirstPersonCameraComponent;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MFPS|Aiming")
+	float DefaultFOV;
 
 private:	
 	
@@ -45,7 +51,4 @@ private:
 	
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USpringArmComponent> SpringArmComponent;
-	
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UCameraComponent> FirstPersonCameraComponent;
 };

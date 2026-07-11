@@ -15,12 +15,13 @@ UCombatComponent::UCombatComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+void UCombatComponent:: GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME(UCombatComponent, Inventory);
 	DOREPLIFETIME(UCombatComponent, CurrentWeapon);
+	DOREPLIFETIME_CONDITION(UCombatComponent, bAiming, COND_SkipOwner);
 }
 
 void UCombatComponent::InitiateCycleWeapon()
@@ -45,18 +46,38 @@ void UCombatComponent::InitiateReloadWeapon()
 
 void UCombatComponent::InitiateAim_Pressed()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, TEXT("InitiateAim_Pressed"), false);
+	Local_Aim(true);
+	Server_Aim(true);
 }
 
 void UCombatComponent::InitiateAim_Released()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, TEXT("InitiateAim_Released"), false);
+	Local_Aim(false);
+	Server_Aim(false);
+}
+
+void UCombatComponent::Server_Aim_Implementation(const bool bPressed)
+{
+	Local_Aim(bPressed);
+}
+
+void UCombatComponent::Local_Aim(bool bPressed)
+{
+	bAiming = bPressed;
+	OnAiming.Broadcast(bPressed);
 }
 
 void UCombatComponent::EquipWeapon(AFPSWeapon* Weapon)
 {
+	if (!GetOwner()->HasAuthority() || !IsValid(Weapon) || Weapon == CurrentWeapon)
+	{
+		return;
+	}
+
+	AFPSWeapon* PreviousWeapon = CurrentWeapon;
 	CurrentWeapon = Weapon;
-	CurrentWeapon->AttachToOwningPawn();
+
+	HandleCurrentWeaponChanged(PreviousWeapon);
 }
 
 void UCombatComponent::SpawnInventory()
@@ -112,17 +133,20 @@ AFPSWeapon* UCombatComponent::SpawnWeapon(TSubclassOf<AFPSWeapon> WeaponClass) c
 	return GetWorld()->SpawnActor<AFPSWeapon>(WeaponClass, SpawnParams);
 }
 
-void UCombatComponent::OnRep_CurrentWeapon(const AFPSWeapon* LastWeapon) const
+void UCombatComponent::HandleCurrentWeaponChanged(AFPSWeapon* LastWeapon) const
 {
-	if (!IsValid(CurrentWeapon))
-	{
-		return;
-	}
-	
-	CurrentWeapon->AttachToOwningPawn();
-	
 	if (IsValid(LastWeapon))
 	{
-		LastWeapon->HideMeshes();
+		LastWeapon->SetEquippedPresentation(false);
 	}
+
+	if (IsValid(CurrentWeapon))
+	{
+		CurrentWeapon->SetEquippedPresentation(true);
+	}
+}
+
+void UCombatComponent::OnRep_CurrentWeapon(AFPSWeapon* LastWeapon) const
+{
+	HandleCurrentWeaponChanged(LastWeapon);
 }

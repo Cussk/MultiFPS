@@ -10,6 +10,8 @@ class UWeaponData;
 class AFPSWeapon;
 struct FGameplayTag;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAiming, bool, isAiming);
+
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class MULTIFPS_API UCombatComponent : public UActorComponent
 {
@@ -17,7 +19,6 @@ class MULTIFPS_API UCombatComponent : public UActorComponent
 
 public:
 	UCombatComponent();
-	
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	void InitiateCycleWeapon();
@@ -34,20 +35,31 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="MFPS|Weapon")
 	TObjectPtr<UWeaponData> WeaponData;	
 	
+	UPROPERTY(BlueprintReadOnly, Replicated)
+	bool bAiming;
+	
 protected:
 	UPROPERTY(Transient, BlueprintReadOnly, ReplicatedUsing = OnRep_CurrentWeapon)
 	TObjectPtr<AFPSWeapon> CurrentWeapon;
 	
-	
-private:	
-	UFUNCTION()
-	void OnRep_CurrentWeapon(const AFPSWeapon* LastWeapon) const;
-	
+private:
 	UPROPERTY(Transient, Replicated)
 	TArray<AFPSWeapon*> Inventory;
 	
 	UPROPERTY(EditDefaultsOnly, Category="MFPS|Weapon")
 	TArray<TSubclassOf<AFPSWeapon>> DefaultWeaponClasses;
 	
+	UPROPERTY(BlueprintAssignable)
+	FOnAiming OnAiming;
+	
+	UFUNCTION()
+	void OnRep_CurrentWeapon(AFPSWeapon* LastWeapon) const;
+	
+	UFUNCTION(Server, Reliable)
+	void Server_Aim(bool bPressed);
+	
+	void Local_Aim(bool bPressed);
+	
 	AFPSWeapon* SpawnWeapon(TSubclassOf<AFPSWeapon> WeaponClass) const;
+	void HandleCurrentWeaponChanged(AFPSWeapon* LastWeapon) const;
 };

@@ -42,11 +42,15 @@ AMFPSCharacter::AMFPSCharacter()
 	
 	CombatComponent = CreateDefaultSubobject<UCombatComponent>("CombatComponent");
 	CombatComponent->SetIsReplicated(true);
+	
+	DefaultFOV = 90.0f;
 }
 
 void AMFPSCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	FirstPersonCameraComponent->SetFieldOfView(DefaultFOV);
 }
 
 void AMFPSCharacter::BeginDestroy()

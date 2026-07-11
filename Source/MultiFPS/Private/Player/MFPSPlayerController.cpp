@@ -8,7 +8,6 @@
 #include "Character/MFPSCharacter.h"
 #include "Components/CombatComponent.h"
 #include "Engine/LocalPlayer.h"
-#include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 AMFPSPlayerController::AMFPSPlayerController()
@@ -110,12 +109,12 @@ void AMFPSPlayerController::InputLook(const FInputActionValue& InputActionValue)
 
 void AMFPSPlayerController::InputJump()
 {
-	if (!IsValid(GetCharacter()))
+	if (!IsValid(MFPSCharacter))
 	{
 		return;
 	}
 	
-	UCharacterMovementComponent* CharacterMovementComponent = GetCharacter()->GetCharacterMovement();
+	UCharacterMovementComponent* CharacterMovementComponent = MFPSCharacter->GetCharacterMovement();
 	if (!IsValid(CharacterMovementComponent))
 	{
 		return;
@@ -127,18 +126,18 @@ void AMFPSPlayerController::InputJump()
 	}
 	else
 	{
-		GetCharacter()->Jump();
+		MFPSCharacter->Jump();
 	}
 }
 
 void AMFPSPlayerController::InputCrouch()
 {
-	if (!IsValid(GetCharacter()))
+	if (!IsValid(MFPSCharacter))
 	{
 		return;
 	}
 	
-	UCharacterMovementComponent* CharacterMovementComponent = GetCharacter()->GetCharacterMovement();
+	UCharacterMovementComponent* CharacterMovementComponent = MFPSCharacter->GetCharacterMovement();
 	if (IsValid(CharacterMovementComponent))
 	{
 		CharacterMovementComponent->bWantsToCrouch = !CharacterMovementComponent->bWantsToCrouch;

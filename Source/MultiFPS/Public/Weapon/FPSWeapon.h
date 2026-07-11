@@ -19,11 +19,16 @@ public:
 	USkeletalMeshComponent* GetMeshFirstPerson() const;
 	USkeletalMeshComponent* GetMeshThirdPerson() const;
 	
+	void SetEquippedPresentation(bool bEquipped);
+	
 	void AttachToOwningPawn() const;
 	void HideMeshes() const;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="MFPS|WeaponType")
 	FGameplayTag WeaponTypeTag;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="MFPS|Aiming")
+	float AimFOV = 0.0f;
 
 protected:
 	virtual void BeginPlay() override;
@@ -36,4 +41,7 @@ private:
 	TObjectPtr<USkeletalMeshComponent> MeshThirdPerson;
 	
 	void SetMeshVisibilities(const APawn* OwningPawn) const;
+	void RefreshWeaponPresentation() const;
+	
+	bool bShouldBeVisibleAsEquipped = false;
 };
