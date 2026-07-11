@@ -22,7 +22,7 @@ public:
 	void AttachToOwningPawn() const;
 	void HideMeshes() const;
 	
-	UPROPERTY(EditAnywhere, Category="MFPS|WeaponType")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="MFPS|WeaponType")
 	FGameplayTag WeaponTypeTag;
 
 protected:

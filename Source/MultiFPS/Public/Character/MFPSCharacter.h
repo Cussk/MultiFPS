@@ -35,11 +35,10 @@ public:
 	UCombatComponent* GetCombatComponent();
 
 protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MFPS|Components")
+	TObjectPtr<UCombatComponent> CombatComponent;
 
 private:	
-	
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UCombatComponent> CombatComponent;
 	
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USkeletalMeshComponent> MeshFirstPerson;

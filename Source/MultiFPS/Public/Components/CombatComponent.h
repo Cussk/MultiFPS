@@ -31,17 +31,15 @@ public:
 	void SpawnInventory();
 	void DestroyInventory();
 	
-	UPROPERTY(EditDefaultsOnly, Category="MFPS|Weapon")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="MFPS|Weapon")
 	TObjectPtr<UWeaponData> WeaponData;	
 	
 protected:
-	
-	
-private:
-	
-	UPROPERTY(Transient, ReplicatedUsing = OnRep_CurrentWeapon)
+	UPROPERTY(Transient, BlueprintReadOnly, ReplicatedUsing = OnRep_CurrentWeapon)
 	TObjectPtr<AFPSWeapon> CurrentWeapon;
 	
+	
+private:	
 	UFUNCTION()
 	void OnRep_CurrentWeapon(const AFPSWeapon* LastWeapon) const;
 	

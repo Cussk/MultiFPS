@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "Animation/AnimSequence.h"
 #include "WeaponTypes.generated.h"
 
 USTRUCT(BlueprintType)
@@ -16,5 +17,35 @@ struct FWeaponSocketAlignment
 	
 	UPROPERTY(EditDefaultsOnly)
 	FVector SocketScale = FVector(1.0f, 1.0f, 1.0f);
+};
+
+USTRUCT(BlueprintType)
+struct FPlayerAnims
+{
+	GENERATED_BODY()
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TObjectPtr<UAnimSequence> IdleAnim = nullptr;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TObjectPtr<UAnimSequence> AimIdleAnim = nullptr;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TObjectPtr<UAnimSequence> CrouchIdleAnim = nullptr;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TObjectPtr<UAnimSequence> SprintAnim = nullptr;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TObjectPtr<UBlendSpace> AimOffset_Hip;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TObjectPtr<UBlendSpace> AimOffset_Aim;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TObjectPtr<UBlendSpace> Strafe_Standing;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TObjectPtr<UBlendSpace> Strafe_Crouching;
 };
 
