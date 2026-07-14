@@ -9,6 +9,13 @@
 #include "Data/WeaponData.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Weapon/FPSWeapon.h"
+
+namespace MFPSCharacterConstants
+{
+	FName FABRIK_OriginSocketName(TEXT("hand_r"));
+	FName FABRIK_SocketName(TEXT("FABRIK_Socket"));
+}
 
 AMFPSCharacter::AMFPSCharacter()
 {
@@ -66,6 +73,8 @@ void AMFPSCharacter::BeginDestroy()
 void AMFPSCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	CalculateFABRIKSocketTransforms();
 }
 
 void AMFPSCharacter::PossessedBy(AController* NewController)
@@ -93,6 +102,22 @@ FRotator AMFPSCharacter::GetFixedAimRotation() const
 	}
 	
 	return AimRotation;
+}
+
+void AMFPSCharacter::CalculateFABRIKSocketTransforms()
+{
+	if (IsValid(CombatComponent) && IsValid(CombatComponent->CurrentWeapon) && IsValid(CombatComponent->CurrentWeapon->GetMeshThirdPerson()))
+	{
+		FABRIK_SocketTransform = CombatComponent->CurrentWeapon->GetMeshThirdPerson()->GetSocketTransform(MFPSCharacterConstants::FABRIK_SocketName, RTS_World);
+		
+		FVector OutLocation;
+		FRotator OutRotation;
+		GetMesh()->TransformToBoneSpace(MFPSCharacterConstants::FABRIK_OriginSocketName, FABRIK_SocketTransform.GetLocation(), 
+			FABRIK_SocketTransform.GetRotation().Rotator(), OutLocation, OutRotation);
+		
+		FABRIK_SocketTransform.SetLocation(OutLocation);
+		FABRIK_SocketTransform.SetRotation(OutRotation.Quaternion());
+	}
 }
 
 FWeaponSocketAlignment AMFPSCharacter::GetTPWeaponSocketAlignment_Implementation(const FGameplayTag& WeaponType) const

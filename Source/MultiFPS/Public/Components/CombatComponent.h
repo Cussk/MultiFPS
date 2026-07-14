@@ -35,12 +35,13 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="MFPS|Weapon")
 	TObjectPtr<UWeaponData> WeaponData;	
 	
+	UPROPERTY(Transient, BlueprintReadOnly, ReplicatedUsing = OnRep_CurrentWeapon)
+	TObjectPtr<AFPSWeapon> CurrentWeapon;
+	
 	UPROPERTY(BlueprintReadOnly, Replicated)
 	bool bAiming;
 	
 protected:
-	UPROPERTY(Transient, BlueprintReadOnly, ReplicatedUsing = OnRep_CurrentWeapon)
-	TObjectPtr<AFPSWeapon> CurrentWeapon;
 	
 private:
 	UPROPERTY(Transient, Replicated)
