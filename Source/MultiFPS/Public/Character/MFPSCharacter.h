@@ -33,6 +33,9 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	UCombatComponent* GetCombatComponent();
+	
+	UFUNCTION(BlueprintCallable)
+	FRotator GetFixedAimRotation() const;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MFPS|Components")

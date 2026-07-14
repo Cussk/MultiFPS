@@ -80,6 +80,21 @@ UCombatComponent* AMFPSCharacter::GetCombatComponent()
 	return CombatComponent;
 }
 
+// Fix compressed rotation data from GetGaseAimRotation
+FRotator AMFPSCharacter::GetFixedAimRotation() const
+{
+	FRotator AimRotation = GetBaseAimRotation();
+	if (AimRotation.Pitch > 90.f && !IsLocallyControlled())
+	{
+		// map pitch from [270, 360) to [-90, 0]
+		const FVector2D InRange(270.f, 360.f);
+		const FVector2D OutRange(-90.f, 0.f);
+		AimRotation.Pitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AimRotation.Pitch);
+	}
+	
+	return AimRotation;
+}
+
 FWeaponSocketAlignment AMFPSCharacter::GetTPWeaponSocketAlignment_Implementation(const FGameplayTag& WeaponType) const
 {
 	checkf(CombatComponent->WeaponData, TEXT("No Weapon Data set on CombatComponent"))
