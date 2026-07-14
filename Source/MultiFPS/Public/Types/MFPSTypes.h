@@ -2,7 +2,15 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimSequence.h"
-#include "WeaponTypes.generated.h"
+#include "MFPSTypes.generated.h"
+
+UENUM(BlueprintType)
+enum class ETurnInPlace : uint8
+{
+	Left UMETA(DisplayName = "TurningLeft"),
+	Right UMETA(DisplayName = "TurningRight"),
+	NotTurning UMETA(DisplayName = "NotTurning")
+};
 
 USTRUCT(BlueprintType)
 struct FWeaponSocketAlignment

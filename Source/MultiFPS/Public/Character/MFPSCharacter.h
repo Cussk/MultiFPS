@@ -34,6 +34,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	UCombatComponent* GetCombatComponent();
 	
+	UFUNCTION(BlueprintPure)
+	bool HasCurrentWeapon();
+	
 	UFUNCTION(BlueprintCallable)
 	FRotator GetFixedAimRotation() const;
 	
@@ -49,6 +52,18 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MFPS|Aiming")
 	float DefaultFOV;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "MFPS|TurnInPlace")
+	float AOYaw;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "MFPS|Strafing")
+	float MovementOffsetYaw;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "MFPS|TurnInPlace")
+	ETurnInPlace TurningStatus;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "MFPS|TurnInPlace")
+	float TurnSpeed = 4.0f;
 
 private:	
 	
@@ -58,5 +73,11 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USpringArmComponent> SpringArmComponent;
 	
+	FRotator StartingAimRotation;
+	float InterpAOYaw;
+	
 	void CalculateFABRIKSocketTransforms();
+	void CalculateTurnInPlaceParameters(float DeltaTime);
+	
+	void TurnInPlace(float DeltaTime);
 };

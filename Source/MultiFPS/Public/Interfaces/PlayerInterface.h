@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Types/WeaponTypes.h"
+#include "Types/MFPSTypes.h"
 #include "UObject/Interface.h"
 #include "PlayerInterface.generated.h"
 

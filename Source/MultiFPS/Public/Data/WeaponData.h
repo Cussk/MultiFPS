@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
 #include "Engine/DataAsset.h"
-#include "Types/WeaponTypes.h"
+#include "Types/MFPSTypes.h"
 #include "WeaponData.generated.h"
 
 /**
