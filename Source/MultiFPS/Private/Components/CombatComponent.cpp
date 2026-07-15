@@ -3,16 +3,26 @@
 
 #include "Components/CombatComponent.h"
 
+#include "TimerManager.h"
+#include "Animation/AnimInstance.h"
+#include "Animation/AnimMontage.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "Data/WeaponData.h"
 #include "Engine/Engine.h"
 #include "GameFramework/Pawn.h"
+#include "Interfaces/PlayerInterface.h"
 #include "Net/UnrealNetwork.h"
+#include "PhysicalMaterials/PhysicalMaterial.h"
 #include "Weapon/FPSWeapon.h"
 
 
 UCombatComponent::UCombatComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	
+	TraceLength = 20'000;
+	bAiming = false;
+	bTriggerPressed = false;
 }
 
 void UCombatComponent:: GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -31,12 +41,13 @@ void UCombatComponent::InitiateCycleWeapon()
 
 void UCombatComponent::InitiateFireWeapon_Pressed()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, TEXT("InitiateFireWeapon_Pressed"), false);
+	bTriggerPressed = true;
+	Local_FireWeapon();
 }
 
 void UCombatComponent::InitiateFireWeapon_Released()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, TEXT("InitiateFireWeapon_Released"), false);
+	bTriggerPressed = false;
 }
 
 void UCombatComponent::InitiateReloadWeapon()
@@ -61,10 +72,74 @@ void UCombatComponent::Server_Aim_Implementation(const bool bPressed)
 	Local_Aim(bPressed);
 }
 
-void UCombatComponent::Local_Aim(bool bPressed)
+void UCombatComponent::Server_FireWeapon_Implementation(const FHitResult& Hit)
+{
+	Multicast_FireWeapon(Hit);
+}
+
+void UCombatComponent::Local_Aim(const bool bPressed)
 {
 	bAiming = bPressed;
 	OnAiming.Broadcast(bPressed);
+}
+
+void UCombatComponent::Local_FireWeapon()
+{
+	if (!IsValid(CurrentWeapon))
+	{
+		return;
+	}
+	
+	ensure(IsValid(WeaponData));
+	
+	UAnimMontage* MontageFirstPerson = WeaponData->FirstPersonMontages.FindChecked(CurrentWeapon->WeaponTypeTag).FireMontage;
+	const USkeletalMeshComponent* MeshFirstPerson = IPlayerInterface::Execute_GetMeshFirstPerson(GetOwner());
+	if (IsValid(MontageFirstPerson) && IsValid(MeshFirstPerson))
+	{
+		MeshFirstPerson->GetAnimInstance()->Montage_Play(MontageFirstPerson, 1.0f);
+	}
+	
+	FHitResult HitResult;
+	CurrentWeapon->WeaponTrace(HitResult, TraceLength);
+	
+	EPhysicalSurface ImpactSurfaceType = HitResult.PhysMaterial.IsValid(false) ? HitResult.PhysMaterial->SurfaceType.GetValue() : SurfaceType1;
+	CurrentWeapon->Local_Fire(HitResult.ImpactPoint, HitResult.ImpactNormal, ImpactSurfaceType, true);
+	
+	GetWorld()->GetTimerManager().SetTimer(FireTimerHandle, this, &ThisClass::FireTimerFinished, CurrentWeapon->FireTime);
+	
+	Server_FireWeapon(HitResult);
+}
+
+void UCombatComponent::Multicast_FireWeapon_Implementation(const FHitResult& Hit)
+{
+	if (GetNetMode() == NM_DedicatedServer)
+	{
+		return;
+	}
+	
+	if (const APawn* OwningPawn = Cast<APawn>(GetOwner()); OwningPawn->IsLocallyControlled())
+	{
+	
+	}
+	else
+	{
+		if (!IsValid(CurrentWeapon))
+		{
+			return;
+		}
+		
+		EPhysicalSurface ImpactSurfaceType = Hit.PhysMaterial.IsValid(false) ? Hit.PhysMaterial->SurfaceType.GetValue() : SurfaceType1;
+		CurrentWeapon->Local_Fire(Hit.ImpactPoint, Hit.ImpactNormal, ImpactSurfaceType, false);
+		
+		ensure(IsValid(WeaponData));
+        	
+        	UAnimMontage* MontageThirdPerson = WeaponData->ThirdPersonMontages.FindChecked(CurrentWeapon->WeaponTypeTag).FireMontage;
+        	const USkeletalMeshComponent* MeshThirdPerson = IPlayerInterface::Execute_GetMeshThirdPerson(GetOwner());
+        	if (IsValid(MontageThirdPerson) && IsValid(MeshThirdPerson))
+        	{
+        		MeshThirdPerson->GetAnimInstance()->Montage_Play(MontageThirdPerson, 1.0f);
+        	}
+	}
 }
 
 void UCombatComponent::EquipWeapon(AFPSWeapon* Weapon)
@@ -143,6 +218,19 @@ void UCombatComponent::HandleCurrentWeaponChanged(AFPSWeapon* LastWeapon) const
 	if (IsValid(CurrentWeapon))
 	{
 		CurrentWeapon->SetEquippedPresentation(true);
+	}
+}
+
+void UCombatComponent::FireTimerFinished()
+{
+	if (!IsValid(CurrentWeapon))
+	{
+		return;
+	}
+	
+	if (bTriggerPressed && CurrentWeapon->FireType == EFireType::Auto)
+	{
+		Local_FireWeapon();
 	}
 }
 

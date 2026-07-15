@@ -3,8 +3,12 @@
 
 #include "Weapon/FPSWeapon.h"
 
+#include "KismetTraceUtils.h"
 #include "Character/MFPSCharacter.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Kismet/KismetArrayLibrary.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "MultiFPS/MultiFPS.h"
 
 namespace WeaponConstants
 {
@@ -32,6 +36,8 @@ AFPSWeapon::AFPSWeapon()
 	HideMeshes();
 	
 	AimFOV = 65.0f;
+	TraceRadius = 5.0f;
+	FireTime = 0.1f;
 }
 
 void AFPSWeapon::OnRep_Instigator()
@@ -128,4 +134,64 @@ void AFPSWeapon::HideMeshes() const
 {
 	MeshFirstPerson->SetHiddenInGame(true);
 	MeshThirdPerson->SetHiddenInGame(true);
+}
+
+void AFPSWeapon::WeaponTrace(FHitResult& OutHit, float TraceLength)
+{
+	FCollisionQueryParams QueryParams;
+	QueryParams.bReturnPhysicalMaterial = true;
+	QueryParams.AddIgnoredActor(GetOwner());
+	QueryParams.AddIgnoredActor(this);
+	
+	FCollisionResponseParams ResponseParams;
+	ResponseParams.CollisionResponse.SetAllChannels(ECR_Ignore);
+	ResponseParams.CollisionResponse.SetResponse(ECC_Pawn, ECR_Block);
+	ResponseParams.CollisionResponse.SetResponse(ECC_WorldStatic, ECR_Block);
+	ResponseParams.CollisionResponse.SetResponse(ECC_WorldDynamic, ECR_Block);
+	ResponseParams.CollisionResponse.SetResponse(ECC_PhysicsBody, ECR_Block);
+	
+	ensure(GetInstigator());
+	if (APlayerController* PC = Cast<APlayerController>(GetInstigator()->GetController()); IsValid(PC))
+	{
+		FVector EyesWorldLocation;
+		FRotator EyesWorldRotation;
+		PC->GetActorEyesViewPoint(EyesWorldLocation, EyesWorldRotation);
+		const FVector EyesWorldDirection = UKismetMathLibrary::GetForwardVector(EyesWorldRotation);
+		
+		const FVector TraceStart = EyesWorldLocation;
+		const FVector TraceEnd = TraceStart + EyesWorldDirection * TraceLength;
+		
+		const bool bHit = GetWorld()->SweepSingleByChannel(
+			OutHit, 
+			TraceStart, 
+			TraceEnd, 
+			FQuat::Identity, 
+			MFPSTraceChannels::ECC_Weapon,
+			FCollisionShape::MakeSphere(TraceRadius), 
+			QueryParams, 
+			ResponseParams);
+		
+		if (!bHit)
+		{
+			OutHit.ImpactPoint = TraceEnd;
+		}
+		
+		// DrawDebugSphereTraceSingle(
+		// 	GetWorld(),
+		// 	TraceStart,
+		// 	TraceEnd,
+		// 	TraceRadius,
+		// 	EDrawDebugTrace::ForDuration,
+		// 	bHit,
+		// 	OutHit,
+		// 	FColor::Green,
+		// 	FColor::Red,
+		// 	5.0f);
+	}
+}
+
+void AFPSWeapon::Local_Fire(const FVector& ImpactPoint, const FVector& ImpactNormal,
+	TEnumAsByte<EPhysicalSurface> ImpactSurfaceType, bool bIsFirstPerson)
+{
+	FireEffects(ImpactPoint, ImpactNormal, ImpactSurfaceType, bIsFirstPerson);
 }

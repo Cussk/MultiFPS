@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "CombatComponent.generated.h"
 
+struct FHitResult;
 class UWeaponData;
 class AFPSWeapon;
 struct FGameplayTag;
@@ -42,6 +43,8 @@ public:
 	bool bAiming;
 	
 protected:
+	UPROPERTY(EditDefaultsOnly, Category = "MFPS|Weapon")
+	float TraceLength;
 	
 private:
 	UPROPERTY(Transient, Replicated)
@@ -53,14 +56,27 @@ private:
 	UPROPERTY(BlueprintAssignable)
 	FOnAiming OnAiming;
 	
+	bool bTriggerPressed = false;
+	FTimerHandle FireTimerHandle;
+	
 	UFUNCTION()
 	void OnRep_CurrentWeapon(AFPSWeapon* LastWeapon) const;
 	
 	UFUNCTION(Server, Reliable)
 	void Server_Aim(bool bPressed);
 	
+	UFUNCTION(Server, Reliable)
+	void Server_FireWeapon(const FHitResult& Hit);
+	
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_FireWeapon(const FHitResult& Hit);
+	
 	void Local_Aim(bool bPressed);
+	void Local_FireWeapon();
 	
 	AFPSWeapon* SpawnWeapon(TSubclassOf<AFPSWeapon> WeaponClass) const;
 	void HandleCurrentWeaponChanged(AFPSWeapon* LastWeapon) const;
+	void FireTimerFinished();
+	
+	
 };

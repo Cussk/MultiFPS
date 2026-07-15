@@ -23,9 +23,18 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "MFPS|WeaponData|Weapons")
 	TMap<FGameplayTag, FWeaponSocketAlignment> FPWeaponSocketAlignments;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MFPS|WeaponData|Weapons")
+	TMap<FGameplayTag, FMontageData> WeaponMontages;
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MFPS|WeaponData|FirstPerson")
 	TMap<FGameplayTag, FPlayerAnims> FirstPersonAnims;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MFPS|WeaponData|ThirdPerson")
 	TMap<FGameplayTag, FPlayerAnims> ThirdPersonAnims;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MFPS|WeaponData|FirstPerson")
+	TMap<FGameplayTag, FMontageData> FirstPersonMontages;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MFPS|WeaponData|ThirdPerson")
+	TMap<FGameplayTag, FMontageData> ThirdPersonMontages;
 };
