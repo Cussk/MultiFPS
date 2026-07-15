@@ -77,5 +77,8 @@ struct FMontageData
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<UAnimMontage> FireMontage = nullptr;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TObjectPtr<UAnimMontage> DryFireMontage = nullptr;
 };
 

@@ -19,6 +19,9 @@ public:
 	AFPSWeapon();
 	virtual void OnRep_Instigator() override;
 	
+	UFUNCTION(BlueprintImplementableEvent)
+	void DryFireEffects();
+	
 	USkeletalMeshComponent* GetMeshFirstPerson() const;
 	USkeletalMeshComponent* GetMeshThirdPerson() const;
 	
@@ -29,6 +32,8 @@ public:
 	
 	void WeaponTrace(FHitResult& OutHit, float TraceLength);
 	void Local_Fire(const FVector& ImpactPoint, const FVector& ImpactNormal, TEnumAsByte<EPhysicalSurface> ImpactSurfaceType, bool bIsFirstPerson);
+	void Auth_Fire();
+	void Rep_Fire(int32 AuthAmmo);
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="MFPS|WeaponType")
 	FGameplayTag WeaponTypeTag;
@@ -44,6 +49,15 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="MFPS|FireType")
 	float FireTime;
+	
+	UPROPERTY(EditAnywhere, Category = "MFPS|Ammo")
+	int32 MagCapacity;
+	
+	UPROPERTY(EditAnywhere, Category = "MFPS|Ammo")
+	int32 Ammo;
+	
+	UPROPERTY(EditAnywhere, Category = "MFPS|Ammo")
+	int32 StartingCarriedAmmo;	
 
 protected:
 	virtual void BeginPlay() override;
@@ -63,4 +77,6 @@ private:
 	void RefreshWeaponPresentation() const;
 	
 	bool bShouldBeVisibleAsEquipped = false;
+	
+	int32 Sequence;
 };

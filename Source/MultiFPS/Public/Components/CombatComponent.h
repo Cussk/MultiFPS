@@ -68,11 +68,18 @@ private:
 	UFUNCTION(Server, Reliable)
 	void Server_FireWeapon(const FHitResult& Hit);
 	
+	UFUNCTION(Server, Reliable)
+	void Server_DryFireWeapon();
+	
 	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_FireWeapon(const FHitResult& Hit);
+	void Multicast_FireWeapon(const FHitResult& Hit, int32 AuthAmmo);
+	
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_DryFireWeapon();
 	
 	void Local_Aim(bool bPressed);
 	void Local_FireWeapon();
+	void Local_DryFireWeapon();
 	
 	AFPSWeapon* SpawnWeapon(TSubclassOf<AFPSWeapon> WeaponClass) const;
 	void HandleCurrentWeaponChanged(AFPSWeapon* LastWeapon) const;

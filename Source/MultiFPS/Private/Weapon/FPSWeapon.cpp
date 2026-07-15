@@ -38,6 +38,10 @@ AFPSWeapon::AFPSWeapon()
 	AimFOV = 65.0f;
 	TraceRadius = 5.0f;
 	FireTime = 0.1f;
+	MagCapacity = 10;
+	Ammo = 5;
+	StartingCarriedAmmo = 10;
+	Sequence = 0;
 }
 
 void AFPSWeapon::OnRep_Instigator()
@@ -175,18 +179,6 @@ void AFPSWeapon::WeaponTrace(FHitResult& OutHit, float TraceLength)
 		{
 			OutHit.ImpactPoint = TraceEnd;
 		}
-		
-		// DrawDebugSphereTraceSingle(
-		// 	GetWorld(),
-		// 	TraceStart,
-		// 	TraceEnd,
-		// 	TraceRadius,
-		// 	EDrawDebugTrace::ForDuration,
-		// 	bHit,
-		// 	OutHit,
-		// 	FColor::Green,
-		// 	FColor::Red,
-		// 	5.0f);
 	}
 }
 
@@ -194,4 +186,25 @@ void AFPSWeapon::Local_Fire(const FVector& ImpactPoint, const FVector& ImpactNor
 	TEnumAsByte<EPhysicalSurface> ImpactSurfaceType, bool bIsFirstPerson)
 {
 	FireEffects(ImpactPoint, ImpactNormal, ImpactSurfaceType, bIsFirstPerson);
+	
+	if (GetInstigator()->IsLocallyControlled())
+	{
+		Ammo = FMath::Clamp(Ammo - 1, 0, MagCapacity);
+		++Sequence;
+	}
+}
+
+void AFPSWeapon::Auth_Fire()
+{
+	Ammo = FMath::Clamp(Ammo - 1, 0, MagCapacity);
+}
+
+void AFPSWeapon::Rep_Fire(int32 AuthAmmo)
+{
+	if (GetInstigator()->IsLocallyControlled())
+	{
+		Ammo = AuthAmmo;
+		--Sequence;
+		Ammo -= Sequence;
+	}
 }

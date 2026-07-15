@@ -41,7 +41,19 @@ void UCombatComponent::InitiateCycleWeapon()
 
 void UCombatComponent::InitiateFireWeapon_Pressed()
 {
+	if (!IsValid(CurrentWeapon))
+	{
+		return;
+	}
+	
 	bTriggerPressed = true;
+	
+	if (CurrentWeapon->Ammo <= 0)
+	{
+		Local_DryFireWeapon();
+		return;
+	}
+	
 	Local_FireWeapon();
 }
 
@@ -74,7 +86,27 @@ void UCombatComponent::Server_Aim_Implementation(const bool bPressed)
 
 void UCombatComponent::Server_FireWeapon_Implementation(const FHitResult& Hit)
 {
-	Multicast_FireWeapon(Hit);
+	if (!IsValid(CurrentWeapon))
+	{
+		return;
+	}
+	
+	if (GetNetMode() != NM_ListenServer || !Cast<APawn>(GetOwner())->IsLocallyControlled())
+	{
+		CurrentWeapon->Auth_Fire();	
+	}
+	
+	Multicast_FireWeapon(Hit, CurrentWeapon->Ammo);
+}
+
+void UCombatComponent::Server_DryFireWeapon_Implementation()
+{
+	if (!IsValid(CurrentWeapon))
+	{
+		return;
+	}
+	
+	Multicast_DryFireWeapon();
 }
 
 void UCombatComponent::Local_Aim(const bool bPressed)
@@ -110,7 +142,26 @@ void UCombatComponent::Local_FireWeapon()
 	Server_FireWeapon(HitResult);
 }
 
-void UCombatComponent::Multicast_FireWeapon_Implementation(const FHitResult& Hit)
+void UCombatComponent::Local_DryFireWeapon()
+{
+	if (!IsValid(CurrentWeapon))
+	{
+		return;
+	}
+	
+	ensure(IsValid(WeaponData));
+	
+	UAnimMontage* MontageFirstPerson = WeaponData->FirstPersonMontages.FindChecked(CurrentWeapon->WeaponTypeTag).DryFireMontage;
+	const USkeletalMeshComponent* MeshFirstPerson = IPlayerInterface::Execute_GetMeshFirstPerson(GetOwner());
+	if (IsValid(MontageFirstPerson) && IsValid(MeshFirstPerson))
+	{
+		MeshFirstPerson->GetAnimInstance()->Montage_Play(MontageFirstPerson, 1.0f);
+	}
+	
+	Server_DryFireWeapon();
+}
+
+void UCombatComponent::Multicast_FireWeapon_Implementation(const FHitResult& Hit, int32 AuthAmmo)
 {
 	if (GetNetMode() == NM_DedicatedServer)
 	{
@@ -119,15 +170,10 @@ void UCombatComponent::Multicast_FireWeapon_Implementation(const FHitResult& Hit
 	
 	if (const APawn* OwningPawn = Cast<APawn>(GetOwner()); OwningPawn->IsLocallyControlled())
 	{
-	
+		CurrentWeapon->Rep_Fire(AuthAmmo);
 	}
 	else
 	{
-		if (!IsValid(CurrentWeapon))
-		{
-			return;
-		}
-		
 		EPhysicalSurface ImpactSurfaceType = Hit.PhysMaterial.IsValid(false) ? Hit.PhysMaterial->SurfaceType.GetValue() : SurfaceType1;
 		CurrentWeapon->Local_Fire(Hit.ImpactPoint, Hit.ImpactNormal, ImpactSurfaceType, false);
 		
@@ -140,6 +186,32 @@ void UCombatComponent::Multicast_FireWeapon_Implementation(const FHitResult& Hit
         		MeshThirdPerson->GetAnimInstance()->Montage_Play(MontageThirdPerson, 1.0f);
         	}
 	}
+}
+
+void UCombatComponent::Multicast_DryFireWeapon_Implementation()
+{
+	if (GetNetMode() == NM_DedicatedServer)
+	{
+		return;
+	}
+	
+	CurrentWeapon->DryFireEffects();
+	
+	if (const APawn* OwningPawn = Cast<APawn>(GetOwner()); OwningPawn->IsLocallyControlled())
+	{
+		return;
+	}
+	
+	ensure(IsValid(WeaponData));
+        	
+	UAnimMontage* MontageThirdPerson = WeaponData->ThirdPersonMontages.FindChecked(CurrentWeapon->WeaponTypeTag).DryFireMontage;
+	const USkeletalMeshComponent* MeshThirdPerson = IPlayerInterface::Execute_GetMeshThirdPerson(GetOwner());
+	if (IsValid(MontageThirdPerson) && IsValid(MeshThirdPerson))
+	{
+		MeshThirdPerson->GetAnimInstance()->Montage_Play(MontageThirdPerson, 1.0f);
+	}
+	
+	CurrentWeapon->DryFireEffects();
 }
 
 void UCombatComponent::EquipWeapon(AFPSWeapon* Weapon)
@@ -230,6 +302,13 @@ void UCombatComponent::FireTimerFinished()
 	
 	if (bTriggerPressed && CurrentWeapon->FireType == EFireType::Auto)
 	{
+		if (CurrentWeapon->Ammo <= 0)
+		{
+			Local_DryFireWeapon();
+			bTriggerPressed = false;
+			return;
+		}
+		
 		Local_FireWeapon();
 	}
 }
