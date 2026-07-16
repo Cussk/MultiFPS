@@ -7,6 +7,7 @@
 #include "GameFramework/Actor.h"
 #include "FPSWeapon.generated.h"
 
+class UMaterialInstanceDynamic;
 enum class EFireType : uint8;
 enum EPhysicalSurface : int;
 
@@ -24,6 +25,8 @@ public:
 	
 	USkeletalMeshComponent* GetMeshFirstPerson() const;
 	USkeletalMeshComponent* GetMeshThirdPerson() const;
+	UMaterialInstanceDynamic* GetReticleMaterialInstance();
+	UMaterialInstanceDynamic* GetAmmoCounterMaterialInstance();
 	
 	void SetEquippedPresentation(bool bEquipped);
 	
@@ -79,4 +82,16 @@ private:
 	bool bShouldBeVisibleAsEquipped = false;
 	
 	int32 Sequence;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "MFPS|Weapon")
+	TObjectPtr<UMaterialInterface> ReticleMaterial;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "MFPS|Weapon")
+	TObjectPtr<UMaterialInterface> AmmoCounterMaterial;
+	
+	UPROPERTY()
+	TObjectPtr<UMaterialInstanceDynamic> ReticleMaterialInstance;
+	
+	UPROPERTY()
+	TObjectPtr<UMaterialInstanceDynamic> AmmoCounterMaterialInstance;
 };

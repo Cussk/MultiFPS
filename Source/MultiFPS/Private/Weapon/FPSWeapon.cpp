@@ -8,6 +8,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Kismet/KismetArrayLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "MultiFPS/MultiFPS.h"
 
 namespace WeaponConstants
@@ -63,6 +64,26 @@ USkeletalMeshComponent* AFPSWeapon::GetMeshFirstPerson() const
 USkeletalMeshComponent* AFPSWeapon::GetMeshThirdPerson() const
 {
 	return MeshThirdPerson;
+}
+
+UMaterialInstanceDynamic* AFPSWeapon::GetReticleMaterialInstance()
+{
+	if (!IsValid(ReticleMaterialInstance))
+	{
+		ReticleMaterialInstance = UMaterialInstanceDynamic::Create(ReticleMaterial, this);
+	}
+	
+	return ReticleMaterialInstance;
+}
+
+UMaterialInstanceDynamic* AFPSWeapon::GetAmmoCounterMaterialInstance()
+{
+	if (!IsValid(AmmoCounterMaterialInstance))
+	{
+		AmmoCounterMaterialInstance = UMaterialInstanceDynamic::Create(AmmoCounterMaterial, this);
+	}
+	
+	return AmmoCounterMaterialInstance;
 }
 
 void AFPSWeapon::SetEquippedPresentation(bool bEquipped)

@@ -7,9 +7,12 @@
 #include "Interfaces/PlayerInterface.h"
 #include "MFPSCharacter.generated.h"
 
+class AFPSWeapon;
 class UCombatComponent;
 class UCameraComponent;
 class USpringArmComponent;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWeaponFirstReplicated, AFPSWeapon*, FirstWeapon);
 
 UCLASS()
 class MULTIFPS_API AMFPSCharacter : public ACharacter, public IPlayerInterface
@@ -23,12 +26,15 @@ public:
 	virtual void BeginDestroy() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void PossessedBy(AController* NewController) override;
+	virtual void OnRep_PlayerState() override;
 	
 	/** Player Interface */
 	virtual FWeaponSocketAlignment GetTPWeaponSocketAlignment_Implementation(const FGameplayTag& WeaponType) const override;
 	virtual FWeaponSocketAlignment GetFPWeaponSocketAlignment_Implementation(const FGameplayTag& WeaponType) const override;
 	virtual USkeletalMeshComponent* GetMeshFirstPerson_Implementation() const override;
 	virtual USkeletalMeshComponent* GetMeshThirdPerson_Implementation() const override;
+	virtual AFPSWeapon* GetCurrentWeapon_Implementation() const override;
+	virtual void WeaponReplicated_Implementation() override;
 	/** ~Player Interface */
 	
 	UFUNCTION(BlueprintCallable)
@@ -40,8 +46,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FRotator GetFixedAimRotation() const;
 	
+	bool HasWeaponFirstReplicated() const { return bWeaponFirstReplicated; }
+	
 	UPROPERTY(BlueprintReadOnly, Category = "MFPS|FABRIK")
 	FTransform FABRIK_SocketTransform;
+	
+	UPROPERTY(BlueprintAssignable)
+	FWeaponFirstReplicated OnWeaponFirstReplicated;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MFPS|Components")
@@ -73,6 +84,7 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USpringArmComponent> SpringArmComponent;
 	
+	bool bWeaponFirstReplicated;
 	FRotator StartingAimRotation;
 	float InterpAOYaw;
 	

@@ -53,6 +53,7 @@ AMFPSCharacter::AMFPSCharacter()
 	
 	DefaultFOV = 90.0f;
 	TurningStatus = ETurnInPlace::NotTurning;
+	bWeaponFirstReplicated = false;
 }
 
 void AMFPSCharacter::BeginPlay()
@@ -87,6 +88,16 @@ void AMFPSCharacter::PossessedBy(AController* NewController)
 	Super::PossessedBy(NewController);
 	
 	CombatComponent->SpawnInventory();
+}
+
+void AMFPSCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+	
+	if (IsValid(CombatComponent))
+	{
+		CombatComponent->InitializeWeaponWidgets();
+	}
 }
 
 UCombatComponent* AMFPSCharacter::GetCombatComponent()
@@ -210,4 +221,18 @@ USkeletalMeshComponent* AMFPSCharacter::GetMeshFirstPerson_Implementation() cons
 USkeletalMeshComponent* AMFPSCharacter::GetMeshThirdPerson_Implementation() const
 {
 	return GetMesh();
+}
+
+AFPSWeapon* AMFPSCharacter::GetCurrentWeapon_Implementation() const
+{
+	return CombatComponent->CurrentWeapon;
+}
+
+void AMFPSCharacter::WeaponReplicated_Implementation()
+{
+	if (bWeaponFirstReplicated)
+	{
+		bWeaponFirstReplicated = true;
+		OnWeaponFirstReplicated.Broadcast(CombatComponent->CurrentWeapon);
+	}
 }

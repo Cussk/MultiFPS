@@ -4,14 +4,19 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "GameFramework/Actor.h"
 #include "CombatComponent.generated.h"
 
+class UMaterialInstanceDynamic;
 struct FHitResult;
 class UWeaponData;
 class AFPSWeapon;
 struct FGameplayTag;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAiming, bool, isAiming);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FReticleChanged, UMaterialInstanceDynamic*, ReticleMaterialInstanceDynamic);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FRoundFired, int32, RoundsCurrent, int32, RoundsMax);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FAmmoCounterChanged, UMaterialInstanceDynamic*, AmmoCounterMaterialInstanceDynamic, int32, RoundsCurrent, int32, RoundsMax);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class MULTIFPS_API UCombatComponent : public UActorComponent
@@ -20,7 +25,10 @@ class MULTIFPS_API UCombatComponent : public UActorComponent
 
 public:
 	UCombatComponent();
-	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
+	UFUNCTION(BlueprintPure, Category = "MFPS|Combat")
+	static UCombatComponent* GetCombatComponent(const AActor* Actor) { return IsValid(Actor) ? Actor->FindComponentByClass<UCombatComponent>() : nullptr; }
 	
 	void InitiateCycleWeapon();
 	void InitiateFireWeapon_Pressed();
@@ -32,6 +40,17 @@ public:
 	void EquipWeapon(AFPSWeapon* Weapon);
 	void SpawnInventory();
 	void DestroyInventory();
+	
+	void InitializeWeaponWidgets() const;
+	
+	UPROPERTY(BlueprintAssignable)
+	FReticleChanged OnReticleChanged;
+	
+	UPROPERTY(BlueprintAssignable)
+	FAmmoCounterChanged OnAmmoCounterChanged;
+	
+	UPROPERTY(BlueprintAssignable)
+	FRoundFired OnRoundFired;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="MFPS|Weapon")
 	TObjectPtr<UWeaponData> WeaponData;	

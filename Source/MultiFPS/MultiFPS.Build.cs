@@ -16,7 +16,10 @@ public class MultiFPS : ModuleRules
 			"InputCore", 
 			"EnhancedInput",
 			"GameplayTags",
-			"PhysicsCore"
+			"PhysicsCore",
+			"UMG",
+			"Slate",
+			"SlateCore",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

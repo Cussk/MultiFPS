@@ -137,8 +137,9 @@ void UCombatComponent::Local_FireWeapon()
 	EPhysicalSurface ImpactSurfaceType = HitResult.PhysMaterial.IsValid(false) ? HitResult.PhysMaterial->SurfaceType.GetValue() : SurfaceType1;
 	CurrentWeapon->Local_Fire(HitResult.ImpactPoint, HitResult.ImpactNormal, ImpactSurfaceType, true);
 	
-	GetWorld()->GetTimerManager().SetTimer(FireTimerHandle, this, &ThisClass::FireTimerFinished, CurrentWeapon->FireTime);
+	OnRoundFired.Broadcast(CurrentWeapon->Ammo, CurrentWeapon->MagCapacity);
 	
+	GetWorld()->GetTimerManager().SetTimer(FireTimerHandle, this, &ThisClass::FireTimerFinished, CurrentWeapon->FireTime);
 	Server_FireWeapon(HitResult);
 }
 
@@ -244,6 +245,7 @@ void UCombatComponent::SpawnInventory()
 	if (Inventory.Num() > 0)
 	{
 		EquipWeapon(Inventory[0]);
+		InitializeWeaponWidgets();
 	}
 }
 
@@ -257,6 +259,15 @@ void UCombatComponent::DestroyInventory()
 		}
 	}
 	Inventory.Empty();
+}
+
+void UCombatComponent::InitializeWeaponWidgets() const
+{
+	if (IsValid(CurrentWeapon))
+	{
+		OnReticleChanged.Broadcast(CurrentWeapon->GetReticleMaterialInstance());
+		OnAmmoCounterChanged.Broadcast(CurrentWeapon->GetAmmoCounterMaterialInstance(), CurrentWeapon->Ammo, CurrentWeapon->MagCapacity);
+	}
 }
 
 AFPSWeapon* UCombatComponent::SpawnWeapon(TSubclassOf<AFPSWeapon> WeaponClass) const
@@ -290,6 +301,7 @@ void UCombatComponent::HandleCurrentWeaponChanged(AFPSWeapon* LastWeapon) const
 	if (IsValid(CurrentWeapon))
 	{
 		CurrentWeapon->SetEquippedPresentation(true);
+		InitializeWeaponWidgets();
 	}
 }
 
@@ -316,4 +328,5 @@ void UCombatComponent::FireTimerFinished()
 void UCombatComponent::OnRep_CurrentWeapon(AFPSWeapon* LastWeapon) const
 {
 	HandleCurrentWeaponChanged(LastWeapon);
+	IPlayerInterface::Execute_WeaponReplicated(GetOwner());
 }
