@@ -13,9 +13,10 @@ class UWeaponData;
 class AFPSWeapon;
 struct FGameplayTag;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAiming, bool, isAiming);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FReticleChanged, UMaterialInstanceDynamic*, ReticleMaterialInstanceDynamic);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAiming, bool, bisAiming);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTargetingPlayerStatusChanged, bool, bTargetPlayerChanged);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FRoundFired, int32, RoundsCurrent, int32, RoundsMax);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FReticleChanged, UMaterialInstanceDynamic*, ReticleMaterialInstanceDynamic, const FReticleParams&, ReticleParams, bool, bCurrentlyTargetingPlayer);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FAmmoCounterChanged, UMaterialInstanceDynamic*, AmmoCounterMaterialInstanceDynamic, int32, RoundsCurrent, int32, RoundsMax);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -25,6 +26,7 @@ class MULTIFPS_API UCombatComponent : public UActorComponent
 
 public:
 	UCombatComponent();
+	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	UFUNCTION(BlueprintPure, Category = "MFPS|Combat")
@@ -42,6 +44,12 @@ public:
 	void DestroyInventory();
 	
 	void InitializeWeaponWidgets() const;
+	
+	UPROPERTY(BlueprintAssignable)
+	FOnAiming OnAiming;
+	
+	UPROPERTY(BlueprintAssignable)
+	FTargetingPlayerStatusChanged OnTargetingPlayerStatusChanged;
 	
 	UPROPERTY(BlueprintAssignable)
 	FReticleChanged OnReticleChanged;
@@ -66,18 +74,6 @@ protected:
 	float TraceLength;
 	
 private:
-	UPROPERTY(Transient, Replicated)
-	TArray<AFPSWeapon*> Inventory;
-	
-	UPROPERTY(EditDefaultsOnly, Category="MFPS|Weapon")
-	TArray<TSubclassOf<AFPSWeapon>> DefaultWeaponClasses;
-	
-	UPROPERTY(BlueprintAssignable)
-	FOnAiming OnAiming;
-	
-	bool bTriggerPressed = false;
-	FTimerHandle FireTimerHandle;
-	
 	UFUNCTION()
 	void OnRep_CurrentWeapon(AFPSWeapon* LastWeapon) const;
 	
@@ -104,5 +100,14 @@ private:
 	void HandleCurrentWeaponChanged(AFPSWeapon* LastWeapon) const;
 	void FireTimerFinished();
 	
+	UPROPERTY(Transient, Replicated)
+	TArray<AFPSWeapon*> Inventory;
 	
+	UPROPERTY(EditDefaultsOnly, Category="MFPS|Weapon")
+	TArray<TSubclassOf<AFPSWeapon>> DefaultWeaponClasses;
+	
+	bool bTriggerPressed = false;
+	FTimerHandle FireTimerHandle;
+	bool bHitPlayerLastFrame = false;
+	bool bHitPlayer = false;
 };

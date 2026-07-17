@@ -15,14 +15,27 @@ namespace Ammo
 	const FName Rounds_Max_Name(TEXT("Rounds_Max"));
 }
 
+namespace Reticle
+{
+	const FName RoundedCornerScale_Name(TEXT("RoundedCornerScale"));
+	const FName ShapeCutThickness_Name(TEXT("ShapeCutThickness"));
+	const FName Inner_RGBA_Name(TEXT("Inner_RGBA"));
+}
+
 void UMFPSReticle::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 	
 	ReticleImage->SetRenderOpacity(0.0f);
 	AmmoCounterImage->SetRenderOpacity(0.0f);
+	_BaseCornerScaleFactor_RoundFired = 0.0f;
+	_BaseShapeCutFactor_RoundFired = 0.0f;
+	_BaseCornerScaleFactor_Aiming = 0.0f;
+	_BaseShapeCutFactor_Aiming = 0.0f;
+	_BaseCornerScaleFactor_TargetingPlayer = 0.0f;
+	bAiming = false;
 	
-	GetOwningPlayer()->OnPossessedPawnChanged.AddDynamic(this, &UMFPSReticle::OnPossesedPawnChanged);
+	GetOwningPlayer()->OnPossessedPawnChanged.AddDynamic(this, &UMFPSReticle::OnPossessedPawnChanged);
 	
 	AMFPSCharacter* MFPSCharacter = Cast<AMFPSCharacter>(GetOwningPlayer()->GetPawn());
 	if (!IsValid(MFPSCharacter))
@@ -30,14 +43,14 @@ void UMFPSReticle::NativeOnInitialized()
 		return;
 	}
 	
-	OnPossesedPawnChanged(nullptr, MFPSCharacter);
+	OnPossessedPawnChanged(nullptr, MFPSCharacter);
 	
 	if (MFPSCharacter->HasWeaponFirstReplicated())
 	{
 		AFPSWeapon* Weapon = IPlayerInterface::Execute_GetCurrentWeapon(MFPSCharacter);
 		if (IsValid(Weapon))
 		{
-			OnReticleChanged(Weapon->GetReticleMaterialInstance());
+			OnReticleChanged(Weapon->GetReticleMaterialInstance(), Weapon->ReticleParams, bTargetingPlayer);
 			OnAmmoCounterChanged(Weapon->GetAmmoCounterMaterialInstance(), Weapon->Ammo, Weapon->MagCapacity);
 		}
 	}
@@ -51,7 +64,7 @@ void UMFPSReticle::NativeOnInitialized()
 		AFPSWeapon* Weapon = IPlayerInterface::Execute_GetCurrentWeapon(MFPSCharacter);
 		if (IsValid(Weapon))
 		{
-			OnReticleChanged(Weapon->GetReticleMaterialInstance());
+			OnReticleChanged(Weapon->GetReticleMaterialInstance(), Weapon->ReticleParams, bTargetingPlayer);
 			OnAmmoCounterChanged(Weapon->GetAmmoCounterMaterialInstance(), Weapon->Ammo, Weapon->MagCapacity);
 		}
 	}
@@ -60,9 +73,30 @@ void UMFPSReticle::NativeOnInitialized()
 void UMFPSReticle::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
+	
+	_BaseCornerScaleFactor_RoundFired = FMath::FInterpTo(_BaseCornerScaleFactor_RoundFired, 0.0f, InDeltaTime, CurrentReticleParams.RoundFiredInterpSpeed);
+	_BaseShapeCutFactor_RoundFired = FMath::FInterpTo(_BaseShapeCutFactor_RoundFired, 0.0f, InDeltaTime, CurrentReticleParams.RoundFiredInterpSpeed);
+	
+	_BaseCornerScaleFactor_Aiming = FMath::FInterpTo(_BaseCornerScaleFactor_Aiming, bAiming ? CurrentReticleParams.ScaleFactor_Aiming : CurrentReticleParams.ScaleFactor_Default, 
+		InDeltaTime, CurrentReticleParams.AimingInterpSpeed);
+	
+	_BaseShapeCutFactor_Aiming = FMath::FInterpTo(_BaseShapeCutFactor_Aiming, bAiming ? CurrentReticleParams.ShapeCutFactor_Aiming : CurrentReticleParams.ShapeCutFactor_Default, 
+		InDeltaTime, CurrentReticleParams.AimingInterpSpeed);
+	
+	_BaseCornerScaleFactor_TargetingPlayer = FMath::FInterpTo(_BaseCornerScaleFactor_TargetingPlayer, bTargetingPlayer ? CurrentReticleParams.ScaleFactor_Targeting : CurrentReticleParams.ScaleFactor_NotTargeting,
+		InDeltaTime, CurrentReticleParams.TargetingInterpSpeed);
+	
+	BaseCornerScaleFactor = _BaseCornerScaleFactor_RoundFired + _BaseCornerScaleFactor_Aiming + _BaseCornerScaleFactor_TargetingPlayer;
+	BaseShapeCutFactor = _BaseShapeCutFactor_RoundFired + _BaseShapeCutFactor_Aiming;
+	
+	if (CurrentReticle_DynamicMaterialInstance.IsValid())
+	{
+		CurrentReticle_DynamicMaterialInstance->SetScalarParameterValue(Reticle::RoundedCornerScale_Name, BaseCornerScaleFactor);
+		CurrentReticle_DynamicMaterialInstance->SetScalarParameterValue(Reticle::ShapeCutThickness_Name, BaseShapeCutFactor);
+	}
 }
 
-void UMFPSReticle::OnPossesedPawnChanged(APawn* OldPawn, APawn* NewPawn)
+void UMFPSReticle::OnPossessedPawnChanged(APawn* OldPawn, APawn* NewPawn)
 {
 	UCombatComponent* OldPawnCombatComponent = UCombatComponent::GetCombatComponent(OldPawn);
 	if (IsValid(OldPawnCombatComponent))
@@ -70,6 +104,8 @@ void UMFPSReticle::OnPossesedPawnChanged(APawn* OldPawn, APawn* NewPawn)
 		OldPawnCombatComponent->OnReticleChanged.RemoveDynamic(this, &UMFPSReticle::OnReticleChanged);
 		OldPawnCombatComponent->OnAmmoCounterChanged.RemoveDynamic(this, &UMFPSReticle::OnAmmoCounterChanged);
 		OldPawnCombatComponent->OnRoundFired.RemoveDynamic(this, &UMFPSReticle::OnRoundFired);
+		OldPawnCombatComponent->OnAiming.RemoveDynamic(this, &UMFPSReticle::OnAiming);
+		OldPawnCombatComponent->OnTargetingPlayerStatusChanged.RemoveDynamic(this, &UMFPSReticle::OnTargetingPlayerStatusChanged);
 	}
 	
 	UCombatComponent* NewPawnCombatComponent = UCombatComponent::GetCombatComponent(NewPawn);
@@ -80,18 +116,21 @@ void UMFPSReticle::OnPossesedPawnChanged(APawn* OldPawn, APawn* NewPawn)
 		NewPawnCombatComponent->OnReticleChanged.AddDynamic(this, &UMFPSReticle::OnReticleChanged);
 		NewPawnCombatComponent->OnAmmoCounterChanged.AddDynamic(this, &UMFPSReticle::OnAmmoCounterChanged);
 		NewPawnCombatComponent->OnRoundFired.AddDynamic(this, &UMFPSReticle::OnRoundFired);
+		NewPawnCombatComponent->OnAiming.AddDynamic(this, &UMFPSReticle::OnAiming);
+		NewPawnCombatComponent->OnTargetingPlayerStatusChanged.AddDynamic(this, &UMFPSReticle::OnTargetingPlayerStatusChanged);
 	}
 }
 
 void UMFPSReticle::OnWeaponFirstReplicated(AFPSWeapon* Weapon)
 {
-	OnReticleChanged(Weapon->GetReticleMaterialInstance());
+	OnReticleChanged(Weapon->GetReticleMaterialInstance(), Weapon->ReticleParams, bTargetingPlayer);
 	OnAmmoCounterChanged(Weapon->GetAmmoCounterMaterialInstance(), Weapon->Ammo, Weapon->MagCapacity);
 }
 
-void UMFPSReticle::OnReticleChanged(UMaterialInstanceDynamic* ReticleDynamicMaterialInstance)
+void UMFPSReticle::OnReticleChanged(UMaterialInstanceDynamic* ReticleDynamicMaterialInstance, const FReticleParams& ReticleParams, bool bCurrentlyTargetingPlayer)
 {
 	CurrentReticle_DynamicMaterialInstance = ReticleDynamicMaterialInstance;
+	CurrentReticleParams = ReticleParams;
 	
 	FSlateBrush Brush;
 	Brush.SetResourceObject(ReticleDynamicMaterialInstance);
@@ -99,6 +138,8 @@ void UMFPSReticle::OnReticleChanged(UMaterialInstanceDynamic* ReticleDynamicMate
 	{
 		ReticleImage->SetBrush(Brush);
 	}
+	
+	OnTargetingPlayerStatusChanged(bCurrentlyTargetingPlayer);
 }
 
 void UMFPSReticle::OnAmmoCounterChanged(UMaterialInstanceDynamic* AmmoCounterDynamicMaterialInstance, int32 RoundsCurrent,
@@ -118,9 +159,27 @@ void UMFPSReticle::OnAmmoCounterChanged(UMaterialInstanceDynamic* AmmoCounterDyn
 
 void UMFPSReticle::OnRoundFired(int32 RoundsCurrent, int32 RoundsMax)
 {
+	_BaseCornerScaleFactor_RoundFired += CurrentReticleParams.ScaleFactor_RoundFired;
+	_BaseShapeCutFactor_RoundFired += CurrentReticleParams.ShapeCutFactor_RoundFired;
+	
 	if (CurrentAmmoCounter_DynamicMaterialInstance.IsValid())
 	{
 		CurrentAmmoCounter_DynamicMaterialInstance->SetScalarParameterValue(Ammo::Rounds_Current_Name, RoundsCurrent);
 		CurrentAmmoCounter_DynamicMaterialInstance->SetScalarParameterValue(Ammo::Rounds_Max_Name, RoundsMax);
+	}
+}
+
+void UMFPSReticle::OnAiming(bool IsAiming)
+{
+	bAiming = IsAiming;
+}
+
+void UMFPSReticle::OnTargetingPlayerStatusChanged(bool TargetPlayerChanged)
+{
+	bTargetingPlayer = TargetPlayerChanged;
+	if (CurrentReticle_DynamicMaterialInstance.IsValid())
+	{
+		FLinearColor ReticleColor = bTargetingPlayer ? FLinearColor::Red : FLinearColor::White;
+		CurrentReticle_DynamicMaterialInstance->SetVectorParameterValue(Reticle::Inner_RGBA_Name, ReticleColor);
 	}
 }

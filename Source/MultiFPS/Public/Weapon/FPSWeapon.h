@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
 #include "GameFramework/Actor.h"
+#include "Types/MFPSTypes.h"
 #include "FPSWeapon.generated.h"
 
 class UMaterialInstanceDynamic;
@@ -52,6 +53,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="MFPS|FireType")
 	float FireTime;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "MFPS|Reticle")
+	FReticleParams ReticleParams;
 	
 	UPROPERTY(EditAnywhere, Category = "MFPS|Ammo")
 	int32 MagCapacity;
