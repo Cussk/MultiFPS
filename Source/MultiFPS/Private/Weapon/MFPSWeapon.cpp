@@ -1,7 +1,7 @@
 ﻿// Copyright Kyle Cuss and Cuss Programming
 
 
-#include "Weapon/FPSWeapon.h"
+#include "Weapon/MFPSWeapon.h"
 
 #include "KismetTraceUtils.h"
 #include "Character/MFPSCharacter.h"
@@ -16,7 +16,7 @@ namespace WeaponConstants
 	const FName WeaponSocketName(TEXT("WeaponGrip"));
 }
 
-AFPSWeapon::AFPSWeapon()
+AMFPSWeapon::AMFPSWeapon()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
@@ -45,28 +45,28 @@ AFPSWeapon::AFPSWeapon()
 	Sequence = 0;
 }
 
-void AFPSWeapon::OnRep_Instigator()
+void AMFPSWeapon::OnRep_Instigator()
 {
 	Super::OnRep_Instigator();
 	RefreshWeaponPresentation();
 }
 
-void AFPSWeapon::BeginPlay()
+void AMFPSWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 }
 
-USkeletalMeshComponent* AFPSWeapon::GetMeshFirstPerson() const
+USkeletalMeshComponent* AMFPSWeapon::GetMeshFirstPerson() const
 {
 	return MeshFirstPerson;
 }
 
-USkeletalMeshComponent* AFPSWeapon::GetMeshThirdPerson() const
+USkeletalMeshComponent* AMFPSWeapon::GetMeshThirdPerson() const
 {
 	return MeshThirdPerson;
 }
 
-UMaterialInstanceDynamic* AFPSWeapon::GetReticleMaterialInstance()
+UMaterialInstanceDynamic* AMFPSWeapon::GetReticleMaterialInstance()
 {
 	if (!IsValid(ReticleMaterialInstance))
 	{
@@ -76,7 +76,7 @@ UMaterialInstanceDynamic* AFPSWeapon::GetReticleMaterialInstance()
 	return ReticleMaterialInstance;
 }
 
-UMaterialInstanceDynamic* AFPSWeapon::GetAmmoCounterMaterialInstance()
+UMaterialInstanceDynamic* AMFPSWeapon::GetAmmoCounterMaterialInstance()
 {
 	if (!IsValid(AmmoCounterMaterialInstance))
 	{
@@ -86,13 +86,13 @@ UMaterialInstanceDynamic* AFPSWeapon::GetAmmoCounterMaterialInstance()
 	return AmmoCounterMaterialInstance;
 }
 
-void AFPSWeapon::SetEquippedPresentation(bool bEquipped)
+void AMFPSWeapon::SetEquippedPresentation(bool bEquipped)
 {
 	bShouldBeVisibleAsEquipped = bEquipped;
 	RefreshWeaponPresentation();
 }
 
-void AFPSWeapon::AttachToOwningPawn() const
+void AMFPSWeapon::AttachToOwningPawn() const
 {
 	APawn* OwningPawn = GetInstigator();
 	if (!IsValid(OwningPawn) || !OwningPawn->Implements<UPlayerInterface>())
@@ -118,7 +118,7 @@ void AFPSWeapon::AttachToOwningPawn() const
 	MeshThirdPerson->SetRelativeScale3D(TPSocketAlignment.SocketScale);
 }
 
-void AFPSWeapon::RefreshWeaponPresentation() const
+void AMFPSWeapon::RefreshWeaponPresentation() const
 {
 	APawn* OwningPawn = GetInstigator();
 
@@ -141,7 +141,7 @@ void AFPSWeapon::RefreshWeaponPresentation() const
 	}
 }
 
-void AFPSWeapon::SetMeshVisibilities(const APawn* OwningPawn) const
+void AMFPSWeapon::SetMeshVisibilities(const APawn* OwningPawn) const
 {
 	if (OwningPawn->IsLocallyControlled())
 	{
@@ -155,13 +155,13 @@ void AFPSWeapon::SetMeshVisibilities(const APawn* OwningPawn) const
 	}
 }
 
-void AFPSWeapon::HideMeshes() const
+void AMFPSWeapon::HideMeshes() const
 {
 	MeshFirstPerson->SetHiddenInGame(true);
 	MeshThirdPerson->SetHiddenInGame(true);
 }
 
-void AFPSWeapon::WeaponTrace(FHitResult& OutHit, float TraceLength)
+void AMFPSWeapon::WeaponTrace(FHitResult& OutHit, float TraceLength)
 {
 	FCollisionQueryParams QueryParams;
 	QueryParams.bReturnPhysicalMaterial = true;
@@ -203,7 +203,7 @@ void AFPSWeapon::WeaponTrace(FHitResult& OutHit, float TraceLength)
 	}
 }
 
-void AFPSWeapon::Local_Fire(const FVector& ImpactPoint, const FVector& ImpactNormal,
+void AMFPSWeapon::Local_Fire(const FVector& ImpactPoint, const FVector& ImpactNormal,
 	TEnumAsByte<EPhysicalSurface> ImpactSurfaceType, bool bIsFirstPerson)
 {
 	FireEffects(ImpactPoint, ImpactNormal, ImpactSurfaceType, bIsFirstPerson);
@@ -215,12 +215,12 @@ void AFPSWeapon::Local_Fire(const FVector& ImpactPoint, const FVector& ImpactNor
 	}
 }
 
-void AFPSWeapon::Auth_Fire()
+void AMFPSWeapon::Auth_Fire()
 {
 	Ammo = FMath::Clamp(Ammo - 1, 0, MagCapacity);
 }
 
-void AFPSWeapon::Rep_Fire(int32 AuthAmmo)
+void AMFPSWeapon::Rep_Fire(int32 AuthAmmo)
 {
 	if (GetInstigator()->IsLocallyControlled())
 	{

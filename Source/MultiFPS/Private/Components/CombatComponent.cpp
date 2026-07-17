@@ -15,7 +15,7 @@
 #include "MultiFPS/MultiFPS.h"
 #include "Net/UnrealNetwork.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
-#include "Weapon/FPSWeapon.h"
+#include "Weapon/MFPSWeapon.h"
 
 
 UCombatComponent::UCombatComponent()
@@ -80,6 +80,7 @@ void UCombatComponent:: GetLifetimeReplicatedProps(TArray<class FLifetimePropert
 	DOREPLIFETIME(UCombatComponent, Inventory);
 	DOREPLIFETIME(UCombatComponent, CurrentWeapon);
 	DOREPLIFETIME_CONDITION(UCombatComponent, bAiming, COND_SkipOwner);
+	DOREPLIFETIME_CONDITION(UCombatComponent, CurrentReserveAmmo, COND_OwnerOnly);
 }
 
 void UCombatComponent::InitiateCycleWeapon()
@@ -185,7 +186,7 @@ void UCombatComponent::Local_FireWeapon()
 	EPhysicalSurface ImpactSurfaceType = HitResult.PhysMaterial.IsValid(false) ? HitResult.PhysMaterial->SurfaceType.GetValue() : SurfaceType1;
 	CurrentWeapon->Local_Fire(HitResult.ImpactPoint, HitResult.ImpactNormal, ImpactSurfaceType, true);
 	
-	OnRoundFired.Broadcast(CurrentWeapon->Ammo, CurrentWeapon->MagCapacity);
+	OnRoundFired.Broadcast(CurrentWeapon->Ammo, CurrentWeapon->MagCapacity, CurrentReserveAmmo);
 	
 	GetWorld()->GetTimerManager().SetTimer(FireTimerHandle, this, &ThisClass::FireTimerFinished, CurrentWeapon->FireTime);
 	Server_FireWeapon(HitResult);
@@ -263,17 +264,20 @@ void UCombatComponent::Multicast_DryFireWeapon_Implementation()
 	CurrentWeapon->DryFireEffects();
 }
 
-void UCombatComponent::EquipWeapon(AFPSWeapon* Weapon)
+void UCombatComponent::EquipWeapon(AMFPSWeapon* Weapon)
 {
 	if (!GetOwner()->HasAuthority() || !IsValid(Weapon) || Weapon == CurrentWeapon)
 	{
 		return;
 	}
 
-	AFPSWeapon* PreviousWeapon = CurrentWeapon;
+	AMFPSWeapon* PreviousWeapon = CurrentWeapon;
 	CurrentWeapon = Weapon;
 
 	HandleCurrentWeaponChanged(PreviousWeapon);
+	
+	CurrentReserveAmmo = ReserveAmmo.FindChecked(CurrentWeapon->WeaponTypeTag);
+	OnCurrentReserveAmmoChanged.Broadcast(CurrentReserveAmmo, Weapon->Ammo, Weapon->WeaponIcon);
 }
 
 void UCombatComponent::SpawnInventory()
@@ -283,10 +287,11 @@ void UCombatComponent::SpawnInventory()
 		return;
 	}
 	
-	for (const TSubclassOf<AFPSWeapon>& WeaponClass : DefaultWeaponClasses)
+	for (const TSubclassOf<AMFPSWeapon>& WeaponClass : DefaultWeaponClasses)
 	{
-		AFPSWeapon* NewWeapon = SpawnWeapon(WeaponClass);
+		AMFPSWeapon* NewWeapon = SpawnWeapon(WeaponClass);
 		Inventory.AddUnique(NewWeapon);
+		ReserveAmmo.Add(NewWeapon->WeaponTypeTag, NewWeapon->StartingCarriedAmmo);
 		NewWeapon->HideMeshes();
 	}
 	
@@ -299,7 +304,7 @@ void UCombatComponent::SpawnInventory()
 
 void UCombatComponent::DestroyInventory()
 {
-	for ( AFPSWeapon* Weapon : Inventory)
+	for ( AMFPSWeapon* Weapon : Inventory)
 	{
 		if (IsValid(Weapon))
 		{
@@ -315,10 +320,11 @@ void UCombatComponent::InitializeWeaponWidgets() const
 	{
 		OnReticleChanged.Broadcast(CurrentWeapon->GetReticleMaterialInstance(), CurrentWeapon->ReticleParams, bHitPlayer);
 		OnAmmoCounterChanged.Broadcast(CurrentWeapon->GetAmmoCounterMaterialInstance(), CurrentWeapon->Ammo, CurrentWeapon->MagCapacity);
+		OnCurrentReserveAmmoChanged.Broadcast(CurrentReserveAmmo, CurrentWeapon->Ammo, CurrentWeapon->WeaponIcon);
 	}
 }
 
-AFPSWeapon* UCombatComponent::SpawnWeapon(TSubclassOf<AFPSWeapon> WeaponClass) const
+AMFPSWeapon* UCombatComponent::SpawnWeapon(TSubclassOf<AMFPSWeapon> WeaponClass) const
 {
 	AActor* OwningActor = GetOwner();
 	if (!IsValid(OwningActor))
@@ -336,10 +342,10 @@ AFPSWeapon* UCombatComponent::SpawnWeapon(TSubclassOf<AFPSWeapon> WeaponClass) c
 	SpawnParams.Owner = OwningActor;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	
-	return GetWorld()->SpawnActor<AFPSWeapon>(WeaponClass, SpawnParams);
+	return GetWorld()->SpawnActor<AMFPSWeapon>(WeaponClass, SpawnParams);
 }
 
-void UCombatComponent::HandleCurrentWeaponChanged(AFPSWeapon* LastWeapon) const
+void UCombatComponent::HandleCurrentWeaponChanged(AMFPSWeapon* LastWeapon) const
 {
 	if (IsValid(LastWeapon))
 	{
@@ -373,7 +379,15 @@ void UCombatComponent::FireTimerFinished()
 	}
 }
 
-void UCombatComponent::OnRep_CurrentWeapon(AFPSWeapon* LastWeapon) const
+void UCombatComponent::OnRep_CurrentReserveAmmo()
+{
+	if (IsValid(CurrentWeapon))
+	{
+		OnCurrentReserveAmmoChanged.Broadcast(CurrentReserveAmmo, CurrentWeapon->Ammo, CurrentWeapon->WeaponIcon);
+	}
+}
+
+void UCombatComponent::OnRep_CurrentWeapon(AMFPSWeapon* LastWeapon) const
 {
 	HandleCurrentWeaponChanged(LastWeapon);
 	IPlayerInterface::Execute_WeaponReplicated(GetOwner());

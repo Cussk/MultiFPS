@@ -7,7 +7,7 @@
 #include "Components/CombatComponent.h"
 #include "Components/Image.h"
 #include "Materials/MaterialInstanceDynamic.h"
-#include "Weapon/FPSWeapon.h"
+#include "Weapon/MFPSWeapon.h"
 
 namespace Ammo
 {
@@ -42,15 +42,21 @@ void UMFPSReticle::NativeOnInitialized()
 	{
 		return;
 	}
+
+	const UCombatComponent* CombatComponent = MFPSCharacter->GetCombatComponent();
+	if (!IsValid(CombatComponent))
+	{
+		return;
+	}
 	
 	OnPossessedPawnChanged(nullptr, MFPSCharacter);
 	
 	if (MFPSCharacter->HasWeaponFirstReplicated())
 	{
-		AFPSWeapon* Weapon = IPlayerInterface::Execute_GetCurrentWeapon(MFPSCharacter);
+		AMFPSWeapon* Weapon = IPlayerInterface::Execute_GetCurrentWeapon(MFPSCharacter);
 		if (IsValid(Weapon))
 		{
-			OnReticleChanged(Weapon->GetReticleMaterialInstance(), Weapon->ReticleParams, bTargetingPlayer);
+			OnReticleChanged(Weapon->GetReticleMaterialInstance(), Weapon->ReticleParams, CombatComponent->bHitPlayer);
 			OnAmmoCounterChanged(Weapon->GetAmmoCounterMaterialInstance(), Weapon->Ammo, Weapon->MagCapacity);
 		}
 	}
@@ -61,10 +67,10 @@ void UMFPSReticle::NativeOnInitialized()
 	
 	if (MFPSCharacter->HasAuthority())
 	{
-		AFPSWeapon* Weapon = IPlayerInterface::Execute_GetCurrentWeapon(MFPSCharacter);
+		AMFPSWeapon* Weapon = IPlayerInterface::Execute_GetCurrentWeapon(MFPSCharacter);
 		if (IsValid(Weapon))
 		{
-			OnReticleChanged(Weapon->GetReticleMaterialInstance(), Weapon->ReticleParams, bTargetingPlayer);
+			OnReticleChanged(Weapon->GetReticleMaterialInstance(), Weapon->ReticleParams, CombatComponent->bHitPlayer);
 			OnAmmoCounterChanged(Weapon->GetAmmoCounterMaterialInstance(), Weapon->Ammo, Weapon->MagCapacity);
 		}
 	}
@@ -121,9 +127,9 @@ void UMFPSReticle::OnPossessedPawnChanged(APawn* OldPawn, APawn* NewPawn)
 	}
 }
 
-void UMFPSReticle::OnWeaponFirstReplicated(AFPSWeapon* Weapon)
+void UMFPSReticle::OnWeaponFirstReplicated(AMFPSWeapon* Weapon, bool bIsTargetingPlayer)
 {
-	OnReticleChanged(Weapon->GetReticleMaterialInstance(), Weapon->ReticleParams, bTargetingPlayer);
+	OnReticleChanged(Weapon->GetReticleMaterialInstance(), Weapon->ReticleParams, bIsTargetingPlayer);
 	OnAmmoCounterChanged(Weapon->GetAmmoCounterMaterialInstance(), Weapon->Ammo, Weapon->MagCapacity);
 }
 
@@ -157,7 +163,7 @@ void UMFPSReticle::OnAmmoCounterChanged(UMaterialInstanceDynamic* AmmoCounterDyn
 	}
 }
 
-void UMFPSReticle::OnRoundFired(int32 RoundsCurrent, int32 RoundsMax)
+void UMFPSReticle::OnRoundFired(int32 RoundsCurrent, int32 RoundsMax, int32 RoundsInReserve)
 {
 	_BaseCornerScaleFactor_RoundFired += CurrentReticleParams.ScaleFactor_RoundFired;
 	_BaseShapeCutFactor_RoundFired += CurrentReticleParams.ShapeCutFactor_RoundFired;

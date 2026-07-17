@@ -7,7 +7,7 @@
 #include "Types/MFPSTypes.h"
 #include "MFPSReticle.generated.h"
 
-class AFPSWeapon;
+class AMFPSWeapon;
 class UImage;
 class UMaterialInstanceDynamic;
 
@@ -45,7 +45,7 @@ private:
 	void OnPossessedPawnChanged(APawn* OldPawn, APawn* NewPawn);
 	
 	UFUNCTION()
-	void OnWeaponFirstReplicated(AFPSWeapon* Weapon);
+	void OnWeaponFirstReplicated(AMFPSWeapon* Weapon, bool bIsTargetingPlayer);
 	
 	UFUNCTION()
 	void OnReticleChanged(UMaterialInstanceDynamic* ReticleDynamicMaterialInstance, const FReticleParams& ReticleParams, bool bCurrentlyTargetingPlayer);
@@ -54,7 +54,7 @@ private:
 	void OnAmmoCounterChanged(UMaterialInstanceDynamic* AmmoCounterDynamicMaterialInstance, int32 RoundsCurrent, int32 RoundsMax);
 	
 	UFUNCTION()
-	void OnRoundFired(int32 RoundsCurrent, int32 RoundsMax);
+	void OnRoundFired(int32 RoundsCurrent, int32 RoundsMax, int32 RoundsInReserve);
 	
 	UFUNCTION()
 	void OnAiming(bool IsAiming);

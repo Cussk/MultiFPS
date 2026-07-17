@@ -6,19 +6,19 @@
 #include "GameplayTagContainer.h"
 #include "GameFramework/Actor.h"
 #include "Types/MFPSTypes.h"
-#include "FPSWeapon.generated.h"
+#include "MFPSWeapon.generated.h"
 
 class UMaterialInstanceDynamic;
 enum class EFireType : uint8;
 enum EPhysicalSurface : int;
 
 UCLASS()
-class MULTIFPS_API AFPSWeapon : public AActor
+class MULTIFPS_API AMFPSWeapon : public AActor
 {
 	GENERATED_BODY()
 
 public:
-	AFPSWeapon();
+	AMFPSWeapon();
 	virtual void OnRep_Instigator() override;
 	
 	UFUNCTION(BlueprintImplementableEvent)
@@ -56,6 +56,9 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "MFPS|Reticle")
 	FReticleParams ReticleParams;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "MFPS|Icon")
+	TObjectPtr<UMaterialInterface> WeaponIcon;
 	
 	UPROPERTY(EditAnywhere, Category = "MFPS|Ammo")
 	int32 MagCapacity;

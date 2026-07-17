@@ -7,12 +7,12 @@
 #include "Interfaces/PlayerInterface.h"
 #include "MFPSCharacter.generated.h"
 
-class AFPSWeapon;
+class AMFPSWeapon;
 class UCombatComponent;
 class UCameraComponent;
 class USpringArmComponent;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWeaponFirstReplicated, AFPSWeapon*, FirstWeapon);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FWeaponFirstReplicated, AMFPSWeapon*, FirstWeapon, bool, bTargetingPlayer);
 
 UCLASS()
 class MULTIFPS_API AMFPSCharacter : public ACharacter, public IPlayerInterface
@@ -33,8 +33,10 @@ public:
 	virtual FWeaponSocketAlignment GetFPWeaponSocketAlignment_Implementation(const FGameplayTag& WeaponType) const override;
 	virtual USkeletalMeshComponent* GetMeshFirstPerson_Implementation() const override;
 	virtual USkeletalMeshComponent* GetMeshThirdPerson_Implementation() const override;
-	virtual AFPSWeapon* GetCurrentWeapon_Implementation() const override;
+	virtual AMFPSWeapon* GetCurrentWeapon_Implementation() const override;
+	virtual int32 GetCurrentWeaponReserveAmmo_Implementation() const override;
 	virtual void WeaponReplicated_Implementation() override;
+	
 	/** ~Player Interface */
 	
 	UFUNCTION(BlueprintCallable)

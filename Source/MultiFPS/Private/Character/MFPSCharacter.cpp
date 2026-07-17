@@ -10,7 +10,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "Weapon/FPSWeapon.h"
+#include "Weapon/MFPSWeapon.h"
 
 namespace MFPSCharacterConstants
 {
@@ -223,9 +223,14 @@ USkeletalMeshComponent* AMFPSCharacter::GetMeshThirdPerson_Implementation() cons
 	return GetMesh();
 }
 
-AFPSWeapon* AMFPSCharacter::GetCurrentWeapon_Implementation() const
+AMFPSWeapon* AMFPSCharacter::GetCurrentWeapon_Implementation() const
 {
 	return CombatComponent->CurrentWeapon;
+}
+
+int32 AMFPSCharacter::GetCurrentWeaponReserveAmmo_Implementation() const
+{
+	return CombatComponent->CurrentReserveAmmo;
 }
 
 void AMFPSCharacter::WeaponReplicated_Implementation()
@@ -233,6 +238,6 @@ void AMFPSCharacter::WeaponReplicated_Implementation()
 	if (bWeaponFirstReplicated)
 	{
 		bWeaponFirstReplicated = true;
-		OnWeaponFirstReplicated.Broadcast(CombatComponent->CurrentWeapon);
+		OnWeaponFirstReplicated.Broadcast(CombatComponent->CurrentWeapon, CombatComponent->bHitPlayer);
 	}
 }

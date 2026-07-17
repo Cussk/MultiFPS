@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Components/ActorComponent.h"
 #include "GameFramework/Actor.h"
 #include "CombatComponent.generated.h"
@@ -10,12 +11,12 @@
 class UMaterialInstanceDynamic;
 struct FHitResult;
 class UWeaponData;
-class AFPSWeapon;
-struct FGameplayTag;
+class AMFPSWeapon;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAiming, bool, bisAiming);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTargetingPlayerStatusChanged, bool, bTargetPlayerChanged);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FRoundFired, int32, RoundsCurrent, int32, RoundsMax);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FCurrentReserveAmmoChanged, int32, RoundsInReserve, int32, RoundsInWeapon, UMaterialInterface*, WeaponIconMaterial);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FRoundFired, int32, RoundsCurrent, int32, RoundsMax, int32, RoundsInReserve);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FReticleChanged, UMaterialInstanceDynamic*, ReticleMaterialInstanceDynamic, const FReticleParams&, ReticleParams, bool, bCurrentlyTargetingPlayer);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FAmmoCounterChanged, UMaterialInstanceDynamic*, AmmoCounterMaterialInstanceDynamic, int32, RoundsCurrent, int32, RoundsMax);
 
@@ -39,7 +40,7 @@ public:
 	void InitiateAim_Pressed();
 	void InitiateAim_Released();
 	
-	void EquipWeapon(AFPSWeapon* Weapon);
+	void EquipWeapon(AMFPSWeapon* Weapon);
 	void SpawnInventory();
 	void DestroyInventory();
 	
@@ -50,6 +51,9 @@ public:
 	
 	UPROPERTY(BlueprintAssignable)
 	FTargetingPlayerStatusChanged OnTargetingPlayerStatusChanged;
+	
+	UPROPERTY(BlueprintAssignable)
+	FCurrentReserveAmmoChanged OnCurrentReserveAmmoChanged;
 	
 	UPROPERTY(BlueprintAssignable)
 	FReticleChanged OnReticleChanged;
@@ -64,19 +68,21 @@ public:
 	TObjectPtr<UWeaponData> WeaponData;	
 	
 	UPROPERTY(Transient, BlueprintReadOnly, ReplicatedUsing = OnRep_CurrentWeapon)
-	TObjectPtr<AFPSWeapon> CurrentWeapon;
+	TObjectPtr<AMFPSWeapon> CurrentWeapon;
 	
 	UPROPERTY(BlueprintReadOnly, Replicated)
 	bool bAiming;
+	
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_CurrentReserveAmmo)
+	int32 CurrentReserveAmmo;
+	
+	bool bHitPlayer = false;
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "MFPS|Weapon")
 	float TraceLength;
 	
-private:
-	UFUNCTION()
-	void OnRep_CurrentWeapon(AFPSWeapon* LastWeapon) const;
-	
+private:	
 	UFUNCTION(Server, Reliable)
 	void Server_Aim(bool bPressed);
 	
@@ -96,18 +102,24 @@ private:
 	void Local_FireWeapon();
 	void Local_DryFireWeapon();
 	
-	AFPSWeapon* SpawnWeapon(TSubclassOf<AFPSWeapon> WeaponClass) const;
-	void HandleCurrentWeaponChanged(AFPSWeapon* LastWeapon) const;
+	AMFPSWeapon* SpawnWeapon(TSubclassOf<AMFPSWeapon> WeaponClass) const;
+	void HandleCurrentWeaponChanged(AMFPSWeapon* LastWeapon) const;
 	void FireTimerFinished();
 	
+	UFUNCTION()
+	void OnRep_CurrentReserveAmmo();
+	
+	UFUNCTION()
+	void OnRep_CurrentWeapon(AMFPSWeapon* LastWeapon) const;
+	
 	UPROPERTY(Transient, Replicated)
-	TArray<AFPSWeapon*> Inventory;
+	TArray<AMFPSWeapon*> Inventory;
 	
 	UPROPERTY(EditDefaultsOnly, Category="MFPS|Weapon")
-	TArray<TSubclassOf<AFPSWeapon>> DefaultWeaponClasses;
+	TArray<TSubclassOf<AMFPSWeapon>> DefaultWeaponClasses;
 	
+	TMap<FGameplayTag, int32> ReserveAmmo;
 	bool bTriggerPressed = false;
 	FTimerHandle FireTimerHandle;
 	bool bHitPlayerLastFrame = false;
-	bool bHitPlayer = false;
 };
