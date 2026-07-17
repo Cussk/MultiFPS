@@ -19,6 +19,16 @@ enum class EFireType : uint8
 	SemiAuto UMETA(DisplayName = "SemiAutomatic")
 };
 
+UENUM(BlueprintType)
+enum class EWeaponStatus : uint8
+{
+	Idle,
+	Firing,
+	Reloading,
+	Cycling,
+	Unequipped
+};
+
 USTRUCT(BlueprintType)
 struct FWeaponSocketAlignment
 {

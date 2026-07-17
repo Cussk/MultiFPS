@@ -8,6 +8,7 @@
 #include "GameFramework/Actor.h"
 #include "CombatComponent.generated.h"
 
+class UAnimMontage;
 class UMaterialInstanceDynamic;
 struct FHitResult;
 class UWeaponData;
@@ -32,6 +33,9 @@ public:
 	
 	UFUNCTION(BlueprintPure, Category = "MFPS|Combat")
 	static UCombatComponent* GetCombatComponent(const AActor* Actor) { return IsValid(Actor) ? Actor->FindComponentByClass<UCombatComponent>() : nullptr; }
+
+	UFUNCTION(Server, Reliable)
+	void Server_EquipWeapon(AMFPSWeapon* Weapon);
 	
 	void InitiateCycleWeapon();
 	void InitiateFireWeapon_Pressed();
@@ -39,6 +43,8 @@ public:
 	void InitiateReloadWeapon();
 	void InitiateAim_Pressed();
 	void InitiateAim_Released();
+	
+	void Notify_CycleWeapon();
 	
 	void EquipWeapon(AMFPSWeapon* Weapon);
 	void SpawnInventory();
@@ -79,6 +85,9 @@ public:
 	bool bHitPlayer = false;
 	
 protected:
+	UFUNCTION()
+	void BlendOut_CycleWeapon(UAnimMontage* Montage, bool bInterrupted);
+	
 	UPROPERTY(EditDefaultsOnly, Category = "MFPS|Weapon")
 	float TraceLength;
 	
@@ -92,25 +101,34 @@ private:
 	UFUNCTION(Server, Reliable)
 	void Server_DryFireWeapon();
 	
+	UFUNCTION(Server, Reliable)
+	void Server_CycleWeapon(int32 WeaponIndex);
+	
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_FireWeapon(const FHitResult& Hit, int32 AuthAmmo);
 	
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_DryFireWeapon();
 	
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_CycleWeapon(int32 WeaponIndex);
+	
 	void Local_Aim(bool bPressed);
 	void Local_FireWeapon();
 	void Local_DryFireWeapon();
+	void Local_CycleWeapon(int32 WeaponIndex);
+	
+	int32 AdvanceWeaponIndex();
 	
 	AMFPSWeapon* SpawnWeapon(TSubclassOf<AMFPSWeapon> WeaponClass) const;
-	void HandleCurrentWeaponChanged(AMFPSWeapon* LastWeapon) const;
+	void SetCurrentWeapon(AMFPSWeapon* NewWeapon, AMFPSWeapon* LastWeapon);
 	void FireTimerFinished();
 	
 	UFUNCTION()
 	void OnRep_CurrentReserveAmmo();
 	
 	UFUNCTION()
-	void OnRep_CurrentWeapon(AMFPSWeapon* LastWeapon) const;
+	void OnRep_CurrentWeapon(AMFPSWeapon* LastWeapon);
 	
 	UPROPERTY(Transient, Replicated)
 	TArray<AMFPSWeapon*> Inventory;
@@ -122,4 +140,6 @@ private:
 	bool bTriggerPressed = false;
 	FTimerHandle FireTimerHandle;
 	bool bHitPlayerLastFrame = false;
+	
+	int32 Local_WeaponIndex;
 };

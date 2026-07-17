@@ -32,6 +32,7 @@ public:
 	void SetEquippedPresentation(bool bEquipped);
 	
 	void AttachToOwningPawn() const;
+	void DetachFromOwningPawn();
 	void HideMeshes() const;
 	
 	void WeaponTrace(FHitResult& OutHit, float TraceLength);
@@ -67,7 +68,9 @@ public:
 	int32 Ammo;
 	
 	UPROPERTY(EditAnywhere, Category = "MFPS|Ammo")
-	int32 StartingCarriedAmmo;	
+	int32 StartingCarriedAmmo;
+	
+	EWeaponStatus WeaponStatus;
 
 protected:
 	virtual void BeginPlay() override;

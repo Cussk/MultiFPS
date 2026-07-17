@@ -241,3 +241,8 @@ void AMFPSCharacter::WeaponReplicated_Implementation()
 		OnWeaponFirstReplicated.Broadcast(CombatComponent->CurrentWeapon, CombatComponent->bHitPlayer);
 	}
 }
+
+void AMFPSCharacter::Notify_CycleWeapon_Implementation()
+{
+	CombatComponent->Notify_CycleWeapon();
+}

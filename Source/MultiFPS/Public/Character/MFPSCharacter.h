@@ -36,6 +36,7 @@ public:
 	virtual AMFPSWeapon* GetCurrentWeapon_Implementation() const override;
 	virtual int32 GetCurrentWeaponReserveAmmo_Implementation() const override;
 	virtual void WeaponReplicated_Implementation() override;
+	virtual void Notify_CycleWeapon_Implementation() override;
 	
 	/** ~Player Interface */
 	

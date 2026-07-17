@@ -43,6 +43,7 @@ AMFPSWeapon::AMFPSWeapon()
 	Ammo = 5;
 	StartingCarriedAmmo = 10;
 	Sequence = 0;
+	WeaponStatus = EWeaponStatus::Idle;
 }
 
 void AMFPSWeapon::OnRep_Instigator()
@@ -116,6 +117,14 @@ void AMFPSWeapon::AttachToOwningPawn() const
 	MeshThirdPerson->SetRelativeLocation(TPSocketAlignment.SocketLocation);
 	MeshThirdPerson->SetRelativeRotation(TPSocketAlignment.SocketRotation);
 	MeshThirdPerson->SetRelativeScale3D(TPSocketAlignment.SocketScale);
+}
+
+void AMFPSWeapon::DetachFromOwningPawn()
+{
+	MeshFirstPerson->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
+	MeshThirdPerson->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
+	
+	HideMeshes();
 }
 
 void AMFPSWeapon::RefreshWeaponPresentation() const
