@@ -37,6 +37,7 @@ public:
 	virtual int32 GetCurrentWeaponReserveAmmo_Implementation() const override;
 	virtual void WeaponReplicated_Implementation() override;
 	virtual void Notify_CycleWeapon_Implementation() override;
+	virtual void Notify_ReloadWeapon_Implementation() override;
 	
 	/** ~Player Interface */
 	

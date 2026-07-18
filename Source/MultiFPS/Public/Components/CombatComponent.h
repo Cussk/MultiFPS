@@ -33,9 +33,6 @@ public:
 	
 	UFUNCTION(BlueprintPure, Category = "MFPS|Combat")
 	static UCombatComponent* GetCombatComponent(const AActor* Actor) { return IsValid(Actor) ? Actor->FindComponentByClass<UCombatComponent>() : nullptr; }
-
-	UFUNCTION(Server, Reliable)
-	void Server_EquipWeapon(AMFPSWeapon* Weapon);
 	
 	void InitiateCycleWeapon();
 	void InitiateFireWeapon_Pressed();
@@ -45,8 +42,8 @@ public:
 	void InitiateAim_Released();
 	
 	void Notify_CycleWeapon();
+	void Notify_ReloadWeapon();
 	
-	void EquipWeapon(AMFPSWeapon* Weapon);
 	void SpawnInventory();
 	void DestroyInventory();
 	
@@ -91,7 +88,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "MFPS|Weapon")
 	float TraceLength;
 	
-private:	
+private:
+	UFUNCTION(Server, Reliable)
+	void Server_EquipWeapon(AMFPSWeapon* Weapon);
+	
 	UFUNCTION(Server, Reliable)
 	void Server_Aim(bool bPressed);
 	
@@ -104,6 +104,9 @@ private:
 	UFUNCTION(Server, Reliable)
 	void Server_CycleWeapon(int32 WeaponIndex);
 	
+	UFUNCTION(Server, Reliable)
+	void Server_ReloadWeapon();
+	
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_FireWeapon(const FHitResult& Hit, int32 AuthAmmo);
 	
@@ -113,10 +116,18 @@ private:
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_CycleWeapon(int32 WeaponIndex);
 	
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_ReloadWeapon();
+	
+	UFUNCTION(Client, Reliable)
+	void Client_ReloadWeapon(int32 NewWeaponAmmo, int32 NewCarriedAmmo);
+	
+	void Local_EquipWeapon(AMFPSWeapon* Weapon);
 	void Local_Aim(bool bPressed);
 	void Local_FireWeapon();
 	void Local_DryFireWeapon();
 	void Local_CycleWeapon(int32 WeaponIndex);
+	void Local_ReloadWeapon();
 	
 	int32 AdvanceWeaponIndex();
 	

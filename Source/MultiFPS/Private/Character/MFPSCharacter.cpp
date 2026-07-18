@@ -246,3 +246,8 @@ void AMFPSCharacter::Notify_CycleWeapon_Implementation()
 {
 	CombatComponent->Notify_CycleWeapon();
 }
+
+void AMFPSCharacter::Notify_ReloadWeapon_Implementation()
+{
+	CombatComponent->Notify_ReloadWeapon();
+}
