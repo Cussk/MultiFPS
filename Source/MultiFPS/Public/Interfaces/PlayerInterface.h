@@ -44,6 +44,9 @@ public:
 	int32 GetCurrentWeaponReserveAmmo() const;
 	
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	bool DoDamage(float DamageAmount, AActor* DamageInstigator);
+	
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void WeaponReplicated();
 	
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)

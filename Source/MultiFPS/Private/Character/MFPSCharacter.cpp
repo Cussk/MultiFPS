@@ -3,6 +3,7 @@
 
 #include "Character/MFPSCharacter.h"
 
+#include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CombatComponent.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -200,6 +201,16 @@ void AMFPSCharacter::TurnInPlace(const float DeltaTime)
 	}
 }
 
+void AMFPSCharacter::MultiCast_HitReact_Implementation(int32 MontageIndex)
+{
+	if (GetNetMode() != NM_DedicatedServer && !IsLocallyControlled())
+	{
+		if (HitReacts.IsValidIndex(MontageIndex))
+		{
+			GetMesh()->GetAnimInstance()->Montage_Play(HitReacts[MontageIndex], 1.0f);
+		}
+	}
+}
 
 FWeaponSocketAlignment AMFPSCharacter::GetTPWeaponSocketAlignment_Implementation(const FGameplayTag& WeaponType) const
 {
@@ -258,4 +269,12 @@ void AMFPSCharacter::AddAmmo_Implementation(const FGameplayTag WeaponType, int32
 	{
 		CombatComponent->AddAmmo(WeaponType, AmmoAmount);
 	}
+}
+
+bool AMFPSCharacter::DoDamage_Implementation(float DamageAmount, AActor* DamageInstigator)
+{
+	const int32 MontageSelection = FMath::RandRange(0, HitReacts.Num()- 1);
+	MultiCast_HitReact(MontageSelection);
+	
+	return false;
 }

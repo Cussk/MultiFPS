@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Animation/AnimMontage.h"
 #include "GameFramework/Character.h"
 #include "Interfaces/PlayerInterface.h"
 #include "MFPSCharacter.generated.h"
@@ -35,6 +36,7 @@ public:
 	virtual USkeletalMeshComponent* GetMeshThirdPerson_Implementation() const override;
 	virtual AMFPSWeapon* GetCurrentWeapon_Implementation() const override;
 	virtual int32 GetCurrentWeaponReserveAmmo_Implementation() const override;
+	virtual bool DoDamage_Implementation(float DamageAmount, AActor* DamageInstigator) override;
 	virtual void WeaponReplicated_Implementation() override;
 	virtual void Notify_CycleWeapon_Implementation() override;
 	virtual void Notify_ReloadWeapon_Implementation() override;
@@ -58,8 +60,14 @@ public:
 	
 	UPROPERTY(BlueprintAssignable)
 	FWeaponFirstReplicated OnWeaponFirstReplicated;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "MFPS|HitReact")
+	TArray<TObjectPtr<UAnimMontage>> HitReacts;
 
 protected:
+	UFUNCTION(NetMulticast, Unreliable)
+	void MultiCast_HitReact(int32 MontageIndex);
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MFPS|Components")
 	TObjectPtr<UCombatComponent> CombatComponent;
 	

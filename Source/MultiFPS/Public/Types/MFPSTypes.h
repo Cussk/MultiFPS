@@ -24,6 +24,7 @@ enum class EWeaponStatus : uint8
 {
 	Idle,
 	Firing,
+	DryFiring,
 	Reloading,
 	Cycling,
 	Unequipped

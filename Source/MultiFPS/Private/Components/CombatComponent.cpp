@@ -256,6 +256,11 @@ void UCombatComponent::Server_FireWeapon_Implementation(const FHitResult& Hit)
 		return;
 	}
 	
+	if (IsValid(Hit.GetActor()) && Hit.GetActor()->Implements<UPlayerInterface>())
+	{
+		IPlayerInterface::Execute_DoDamage(Hit.GetActor(), 0.0f, GetOwner());
+	}
+	
 	if (GetNetMode() != NM_ListenServer || !Cast<APawn>(GetOwner())->IsLocallyControlled())
 	{
 		CurrentWeapon->Auth_Fire();	
@@ -326,7 +331,10 @@ void UCombatComponent::BlendOut_DryFireWeapon(UAnimMontage* Montage, bool bInter
 	{
 		Local_ReloadWeapon();
 		Server_ReloadWeapon();
+		return;
 	}
+	
+	CurrentWeapon->WeaponStatus = EWeaponStatus::Idle;
 }
 
 void UCombatComponent::Local_EquipWeapon(AMFPSWeapon* Weapon)
@@ -384,12 +392,14 @@ void UCombatComponent::Local_FireWeapon()
 
 void UCombatComponent::Local_DryFireWeapon()
 {
-	if (!IsValid(CurrentWeapon))
+	if (!IsValid(CurrentWeapon) || CurrentWeapon->WeaponStatus == EWeaponStatus::DryFiring)
 	{
 		return;
 	}
 	
 	ensure(IsValid(WeaponData));
+	
+	CurrentWeapon->WeaponStatus = EWeaponStatus::DryFiring;
 	
 	UAnimMontage* MontageFirstPerson = WeaponData->FirstPersonMontages.FindChecked(CurrentWeapon->WeaponTypeTag).DryFireMontage;
 	const USkeletalMeshComponent* MeshFirstPerson = IPlayerInterface::Execute_GetMeshFirstPerson(GetOwner());
