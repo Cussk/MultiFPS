@@ -3,12 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Types/MFPSTypes.h"
 #include "UObject/Interface.h"
 #include "PlayerInterface.generated.h"
 
 class AMFPSWeapon;
-struct FGameplayTag;
 
 UINTERFACE()
 class UPlayerInterface : public UInterface
@@ -51,4 +51,7 @@ public:
 	
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void Notify_ReloadWeapon();
+	
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void AddAmmo(const FGameplayTag WeaponType, int32 AmmoAmount);
 };

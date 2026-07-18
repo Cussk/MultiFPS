@@ -251,3 +251,11 @@ void AMFPSCharacter::Notify_ReloadWeapon_Implementation()
 {
 	CombatComponent->Notify_ReloadWeapon();
 }
+
+void AMFPSCharacter::AddAmmo_Implementation(const FGameplayTag WeaponType, int32 AmmoAmount)
+{
+	if (HasAuthority())
+	{
+		CombatComponent->AddAmmo(WeaponType, AmmoAmount);
+	}
+}
