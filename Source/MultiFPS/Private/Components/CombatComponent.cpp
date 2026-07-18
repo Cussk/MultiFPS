@@ -265,13 +265,39 @@ void UCombatComponent::BlendOut_CycleWeapon(UAnimMontage* Montage, bool bInterru
 		AnimInstance->OnMontageBlendingOut.RemoveDynamic(this, &UCombatComponent::BlendOut_CycleWeapon);
 	}
 	
+	if (!IsValid(CurrentWeapon))
+	{
+		return;
+	}
+	
 	CurrentWeapon->WeaponStatus = EWeaponStatus::Idle;
 	
 	InitializeWeaponWidgets();
 	
-	if (bTriggerPressed && CurrentWeapon->FireType == EFireType::Auto && CurrentWeapon->Ammo > 0)
+	if (bTriggerPressed && CurrentWeapon->Ammo > 0)
 	{
 		Local_FireWeapon();
+	}
+}
+
+void UCombatComponent::BlendOut_DryFireWeapon(UAnimMontage* Montage, bool bInterrupted)
+{
+	UAnimInstance* AnimInstance = IPlayerInterface::Execute_GetMeshFirstPerson(GetOwner())->GetAnimInstance();
+	if (IsValid(AnimInstance) && AnimInstance->OnMontageBlendingOut.IsAlreadyBound(this, &UCombatComponent::BlendOut_DryFireWeapon))
+	{
+		AnimInstance->OnMontageBlendingOut.RemoveDynamic(this, &UCombatComponent::BlendOut_DryFireWeapon);
+	}
+	
+	if (!IsValid(CurrentWeapon))
+	{
+		return;
+	}
+
+	const APawn* OwningPawn = Cast<APawn>(GetOwner());
+	if (CurrentReserveAmmo > 0 && IsValid(OwningPawn) && OwningPawn->IsLocallyControlled())
+	{
+		Local_ReloadWeapon();
+		Server_ReloadWeapon();
 	}
 }
 
@@ -342,11 +368,10 @@ void UCombatComponent::Local_DryFireWeapon()
 	if (IsValid(MontageFirstPerson) && IsValid(MeshFirstPerson))
 	{
 		MeshFirstPerson->GetAnimInstance()->Montage_Play(MontageFirstPerson, 1.0f);
+		MeshFirstPerson->GetAnimInstance()->OnMontageBlendingOut.AddDynamic(this, &UCombatComponent::BlendOut_DryFireWeapon);
 	}
 	
 	Server_DryFireWeapon();
-	
-	//TODO: Add WeaponStatus DryFiring, block multiple dry fires, BlendOut callback reset DRyFire and trigger reload.
 }
 
 void UCombatComponent::Local_CycleWeapon(int32 WeaponIndex)
@@ -608,6 +633,12 @@ void UCombatComponent::SetCurrentWeapon(AMFPSWeapon* NewWeapon, AMFPSWeapon* Las
 	}
 	
 	CurrentWeapon->SetEquippedPresentation(true);
+	
+	if (CurrentWeapon->Ammo == 0 && CurrentReserveAmmo > 0 && OwningPawn->IsLocallyControlled())
+	{
+		Local_ReloadWeapon();
+		Server_ReloadWeapon();
+	}
 }
 
 void UCombatComponent::FireTimerFinished()

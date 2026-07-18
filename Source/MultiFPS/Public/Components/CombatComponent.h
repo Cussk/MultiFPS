@@ -85,6 +85,9 @@ protected:
 	UFUNCTION()
 	void BlendOut_CycleWeapon(UAnimMontage* Montage, bool bInterrupted);
 	
+	UFUNCTION()
+	void BlendOut_DryFireWeapon(UAnimMontage* Montage, bool bInterrupted);
+	
 	UPROPERTY(EditDefaultsOnly, Category = "MFPS|Weapon")
 	float TraceLength;
 	
