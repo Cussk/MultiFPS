@@ -79,6 +79,7 @@ void AMFPSPlayerController::SetupFPSCharacter(APawn* InPawn)
 	if (IsValid(MFPSCharacter))
 	{
 		CombatComponent = MFPSCharacter->GetCombatComponent();
+		bPawnAlive = true;
 	}
 }
 

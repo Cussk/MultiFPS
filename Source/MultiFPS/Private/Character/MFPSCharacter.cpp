@@ -8,6 +8,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/CombatComponent.h"
+#include "Components/EliminationComponent.h"
 #include "Components/HealthComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Data/WeaponData.h"
@@ -62,6 +63,9 @@ AMFPSCharacter::AMFPSCharacter()
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>("HealthComponent");
 	HealthComponent->SetIsReplicated(true);
 	
+	EliminationComponent = CreateDefaultSubobject<UEliminationComponent>("EliminationComponent");
+	EliminationComponent->SetIsReplicated(false);
+	
 	DefaultFOV = 90.0f;
 	TurningStatus = ETurnInPlace::NotTurning;
 	bWeaponFirstReplicated = false;
@@ -79,11 +83,12 @@ void AMFPSCharacter::BeginPlay()
 	AMFPSPlayerController* PC = Cast<AMFPSPlayerController>(GetController());
 	if (IsValid(PC))
 	{
-		DisableInput(PC);
-		if (PC->IsLocalController())
-		{
-			PC->bPawnAlive = true;
-		}
+		PC->bPawnAlive = true;
+	}
+	
+	if (HasAuthority())
+	{
+		CombatComponent->OnRoundReported.AddDynamic(EliminationComponent, &UEliminationComponent::OnRoundReported);
 	}
 }
 
@@ -336,7 +341,10 @@ bool AMFPSCharacter::DoDamage_Implementation(float DamageAmount, AActor* DamageI
 		return false;
 	}
 	
-	HealthComponent->ChangeHealthByAmount(-DamageAmount, DamageInstigator);
+	if (HealthComponent->ChangeHealthByAmount(-DamageAmount, DamageInstigator)) // Lethal
+	{
+		return true;
+	}
 	
 	const int32 MontageSelection = FMath::RandRange(0, HitReacts.Num()- 1);
 	MultiCast_HitReact(MontageSelection);

@@ -38,6 +38,24 @@ enum class EDeathState : uint8
 	DeathFinished
 };
 
+UENUM(meta = (BitFlags))
+enum class ESpecialKillTypes : uint16
+{
+	None = 0,					// 00000000 00000000
+	Headshot = 1 << 0,			// 00000000 00000001
+	Sequential = 1 << 1,		// 00000000 00000010
+	Streak = 1 << 2,			// 00000000 00000100
+	Revenge = 1 << 3,			// 00000000 00001000
+	Dethrone = 1 << 4,			// 00000000 00010000
+	Showstopper = 1 << 5,		// 00000000 00100000
+	FirstBlood = 1 << 6,		// 00000000 01000000
+	GainedTheLead = 1 << 7,		// 00000000 10000000
+	TiedTheLeader = 1 << 8,		// 00000001 00000000
+	LostTheLead = 1 << 9,		// 00000010 00000000
+};
+
+ENUM_CLASS_FLAGS(ESpecialKillTypes)
+
 USTRUCT(BlueprintType)
 struct FWeaponSocketAlignment
 {
@@ -138,4 +156,46 @@ struct FReticleParams
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	float TargetingInterpSpeed = 10.0f;
+};
+
+USTRUCT(BlueprintType)
+struct FFiredRoundReport
+{
+	GENERATED_BODY()
+	
+	UPROPERTY(BlueprintReadOnly)
+	AActor* Attacker = nullptr; 
+	
+	UPROPERTY(BlueprintReadOnly)
+	AActor* Victim = nullptr; 
+	
+	UPROPERTY(BlueprintReadOnly)
+	bool bHit = false;
+	
+	UPROPERTY(BlueprintReadOnly)
+	bool bHeadShot = false; 
+	
+	UPROPERTY(BlueprintReadOnly)
+	bool bLethal = false;
+};
+
+USTRUCT(BlueprintType)
+struct FSpecialElimInfo
+{
+	GENERATED_BODY()
+	
+	UPROPERTY(BlueprintReadOnly)
+	ESpecialKillTypes SpecialKillType = ESpecialKillTypes::None;
+	
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly)
+	FString ElimMessage = FString();
+	
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly)
+	TObjectPtr<UTexture2D> ElimIcon = nullptr;
+	
+	UPROPERTY(BlueprintReadOnly)
+	int32 SequentialKillCount = 0;
+	
+	UPROPERTY(BlueprintReadOnly)
+	int32 StreakCount = 0;
 };

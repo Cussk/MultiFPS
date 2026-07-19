@@ -6,6 +6,7 @@
 #include "GameplayTagContainer.h"
 #include "Components/ActorComponent.h"
 #include "GameFramework/Actor.h"
+#include "Types/MFPSTypes.h"
 #include "CombatComponent.generated.h"
 
 class UAnimMontage;
@@ -16,6 +17,7 @@ class AMFPSWeapon;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAiming, bool, bisAiming);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTargetingPlayerStatusChanged, bool, bTargetPlayerChanged);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FRoundReported, FFiredRoundReport, FiredRoundReport);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FCurrentReserveAmmoChanged, int32, RoundsInReserve, int32, RoundsInWeapon, UMaterialInterface*, WeaponIconMaterial);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FRoundFired, int32, RoundsCurrent, int32, RoundsMax, int32, RoundsInReserve);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FReticleChanged, UMaterialInstanceDynamic*, ReticleMaterialInstanceDynamic, const FReticleParams&, ReticleParams, bool, bCurrentlyTargetingPlayer);
@@ -56,6 +58,9 @@ public:
 	
 	UPROPERTY(BlueprintAssignable)
 	FTargetingPlayerStatusChanged OnTargetingPlayerStatusChanged;
+	
+	UPROPERTY(BlueprintAssignable)
+	FRoundReported OnRoundReported;
 	
 	UPROPERTY(BlueprintAssignable)
 	FCurrentReserveAmmoChanged OnCurrentReserveAmmoChanged;
