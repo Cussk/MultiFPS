@@ -30,6 +30,14 @@ enum class EWeaponStatus : uint8
 	Unequipped
 };
 
+UENUM(BlueprintType)
+enum class EDeathState : uint8
+{
+	NotDead,
+	DeathStarted,
+	DeathFinished
+};
+
 USTRUCT(BlueprintType)
 struct FWeaponSocketAlignment
 {

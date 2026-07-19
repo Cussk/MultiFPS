@@ -8,6 +8,7 @@
 #include "Interfaces/PlayerInterface.h"
 #include "MFPSCharacter.generated.h"
 
+class UHealthComponent;
 class AMFPSWeapon;
 class UCombatComponent;
 class UCameraComponent;
@@ -70,6 +71,9 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MFPS|Components")
 	TObjectPtr<UCombatComponent> CombatComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MFPS|Components")
+	TObjectPtr<UHealthComponent> HealthComponent;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MFPS|Camera")
 	TObjectPtr<UCameraComponent> FirstPersonCameraComponent;

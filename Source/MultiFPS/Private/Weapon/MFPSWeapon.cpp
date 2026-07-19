@@ -44,6 +44,7 @@ AMFPSWeapon::AMFPSWeapon()
 	StartingCarriedAmmo = 10;
 	Sequence = 0;
 	WeaponStatus = EWeaponStatus::Idle;
+	Damage = 15.0f;
 }
 
 void AMFPSWeapon::OnRep_Instigator()

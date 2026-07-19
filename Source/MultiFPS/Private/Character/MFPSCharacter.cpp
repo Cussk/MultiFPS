@@ -6,6 +6,7 @@
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CombatComponent.h"
+#include "Components/HealthComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Data/WeaponData.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -51,6 +52,9 @@ AMFPSCharacter::AMFPSCharacter()
 	
 	CombatComponent = CreateDefaultSubobject<UCombatComponent>("CombatComponent");
 	CombatComponent->SetIsReplicated(true);
+	
+	HealthComponent = CreateDefaultSubobject<UHealthComponent>("HealthComponent");
+	HealthComponent->SetIsReplicated(true);
 	
 	DefaultFOV = 90.0f;
 	TurningStatus = ETurnInPlace::NotTurning;
@@ -273,6 +277,13 @@ void AMFPSCharacter::AddAmmo_Implementation(const FGameplayTag WeaponType, int32
 
 bool AMFPSCharacter::DoDamage_Implementation(float DamageAmount, AActor* DamageInstigator)
 {
+	if (!IsValid(HealthComponent))
+	{
+		return false;
+	}
+	
+	HealthComponent->ChangeHealthByAmount(-DamageAmount, DamageInstigator);
+	
 	const int32 MontageSelection = FMath::RandRange(0, HitReacts.Num()- 1);
 	MultiCast_HitReact(MontageSelection);
 	

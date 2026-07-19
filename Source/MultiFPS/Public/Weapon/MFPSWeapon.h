@@ -52,6 +52,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="MFPS|FireType")
 	EFireType FireType;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="MFPS|Damage")
+	float Damage;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="MFPS|FireType")
 	float FireTime;
 	
