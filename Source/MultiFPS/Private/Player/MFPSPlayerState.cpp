@@ -235,13 +235,15 @@ void AMFPSPlayerState::ShowSpecialKill(const FSpecialElimInfo& SpecialKillInfo)
 
 void AMFPSPlayerState::Client_ScoredKill_Implementation(int32 KillScore)
 {
-	
+	OnScoreChanged.Broadcast(KillScore);
 }
 
 void AMFPSPlayerState::Client_SpecialKill_Implementation(const ESpecialKillTypes& SpecialKillTypes,
 	int32 SequentialKillCount, int32 StreakCount, int32 KillScore)
 {
 	ensure(IsValid(SpecialElimData));
+	
+	OnScoreChanged.Broadcast(KillScore);
 	
 	TArray<ESpecialKillTypes> ValidKillTypes = DecodeKillBitmask(SpecialKillTypes);
 	for (const ESpecialKillTypes& KillType : ValidKillTypes)

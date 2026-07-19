@@ -11,9 +11,9 @@ class UCombatComponent;
 struct FInputActionValue;
 class UInputAction;
 class UInputMappingContext;
-/**
- * 
- */
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerStateReplicated);
+
 UCLASS()
 class MULTIFPS_API AMFPSPlayerController : public APlayerController
 {
@@ -23,6 +23,10 @@ public:
 	AMFPSPlayerController();
 	virtual void AcknowledgePossession(APawn* P) override;
 	virtual void OnRep_Pawn() override;
+	virtual void OnRep_PlayerState() override;
+	
+	UPROPERTY(BlueprintAssignable)
+	FPlayerStateReplicated OnPlayerStateReplicated;
 	
 	bool bPawnAlive;
 	

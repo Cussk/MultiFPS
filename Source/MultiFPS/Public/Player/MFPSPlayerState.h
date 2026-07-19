@@ -11,6 +11,8 @@
 class UMFPSSpecialElim;
 class USpecialElimData;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnScoreChanged, int32, NewScore);
+
 UCLASS()
 class MULTIFPS_API AMFPSPlayerState : public APlayerState
 {
@@ -63,6 +65,9 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "MFPS|SpecialElims")
 	float KillDisplayTime;
+	
+	UPROPERTY(BlueprintAssignable)
+	FOnScoreChanged OnScoreChanged;
 	
 private:
 	TArray<ESpecialKillTypes> DecodeKillBitmask(ESpecialKillTypes KillTypeBitmask);

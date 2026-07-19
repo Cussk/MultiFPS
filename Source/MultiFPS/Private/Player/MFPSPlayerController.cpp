@@ -55,6 +55,12 @@ void AMFPSPlayerController::OnRep_Pawn()
 	SetupFPSCharacter(GetPawn());
 }
 
+void AMFPSPlayerController::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+	OnPlayerStateReplicated.Broadcast();
+}
+
 void AMFPSPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
