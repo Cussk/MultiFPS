@@ -69,6 +69,15 @@ protected:
 	UFUNCTION(NetMulticast, Unreliable)
 	void MultiCast_HitReact(int32 MontageIndex);
 	
+	UFUNCTION()
+	void OnDeathStarted();
+	
+	UFUNCTION(BlueprintImplementableEvent, Category = "MFPS|Mesh")
+	void DeathEffects();
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<USkeletalMeshComponent> MeshFirstPerson;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MFPS|Components")
 	TObjectPtr<UCombatComponent> CombatComponent;
 	
@@ -93,11 +102,7 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "MFPS|TurnInPlace")
 	float TurnSpeed = 4.0f;
 
-private:	
-	
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<USkeletalMeshComponent> MeshFirstPerson;
-	
+private:		
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USpringArmComponent> SpringArmComponent;
 	

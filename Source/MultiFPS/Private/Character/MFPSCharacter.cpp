@@ -5,6 +5,7 @@
 
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Components/CombatComponent.h"
 #include "Components/HealthComponent.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -12,6 +13,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "MultiFPS/MultiFPS.h"
+#include "Player/MFPSPlayerController.h"
 #include "Weapon/MFPSWeapon.h"
 
 namespace MFPSCharacterConstants
@@ -65,9 +68,19 @@ void AMFPSCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	HealthComponent->OnDeathStateStarted.AddDynamic(this, &AMFPSCharacter::OnDeathStarted);
 	FirstPersonCameraComponent->SetFieldOfView(DefaultFOV);
-	
 	StartingAimRotation = FRotator(0.0f, GetBaseAimRotation().Yaw, 0.0f);
+	
+	AMFPSPlayerController* PC = Cast<AMFPSPlayerController>(GetController());
+	if (IsValid(PC))
+	{
+		DisableInput(PC);
+		if (PC->IsLocalController())
+		{
+			PC->bPawnAlive = true;
+		}
+	}
 }
 
 void AMFPSCharacter::BeginDestroy()
@@ -128,6 +141,33 @@ FRotator AMFPSCharacter::GetFixedAimRotation() const
 	}
 	
 	return AimRotation;
+}
+
+void AMFPSCharacter::OnDeathStarted()
+{
+	if (HasAuthority())
+	{
+		CombatComponent->DestroyInventory();
+	}
+	
+	if (GetNetMode() != NM_DedicatedServer)
+	{
+		DeathEffects();
+		
+		AMFPSPlayerController* PC = Cast<AMFPSPlayerController>(GetController());
+		if (IsValid(PC))
+		{
+			DisableInput(PC);
+			if (PC->IsLocalController())
+			{
+				PC->bPawnAlive = false;
+			}
+		}
+	}
+	
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(MFPSTraceChannels::ECC_Weapon, ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(MFPSTraceChannels::ECC_Weapon, ECR_Ignore);
 }
 
 void AMFPSCharacter::CalculateFABRIKSocketTransforms()

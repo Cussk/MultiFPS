@@ -8,6 +8,7 @@
 #include "Types/MFPSTypes.h"
 #include "HealthComponent.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FDeathStateStarted);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FHealthChanged, UHealthComponent*, HealthComponent,  float, OldValue, float, NewValue, AActor*, Instigator);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -39,6 +40,9 @@ public:
 	float MaxHealth;
 	
 	UPROPERTY(BlueprintAssignable)
+	FDeathStateStarted OnDeathStateStarted;
+	
+	UPROPERTY(BlueprintAssignable)
 	FHealthChanged OnHealthChanged;
 	
 	UPROPERTY(BlueprintAssignable)
@@ -55,4 +59,7 @@ protected:
 	
 	UFUNCTION()
 	void OnRep_MaxHealth(float OldValue);
+	
+private:
+	void StartDeath();
 };

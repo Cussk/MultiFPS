@@ -17,6 +17,11 @@ UHealthComponent::UHealthComponent()
 	MaxHealth = 100.0f;
 }
 
+void UHealthComponent::BeginPlay()
+{
+	Super::BeginPlay();	
+}
+
 void UHealthComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -35,8 +40,12 @@ bool UHealthComponent::ChangeHealthByAmount(float Amount, AActor* Instigator)
 {
 	float OldValue = Health;
 	Health = FMath::Clamp(Health + Amount, 0.0f, MaxHealth);
-	
 	OnHealthChanged.Broadcast(this, OldValue, Health, Instigator);
+	
+	if (Health <= 0.0f)
+	{
+		StartDeath();
+	}
 	
 	return false;
 }
@@ -49,13 +58,24 @@ void UHealthComponent::ChangeMaxHealthByAmount(float Amount, AActor* Instigator)
 	OnMaxHealthChanged.Broadcast(this, OldValue, MaxHealth, Instigator);
 }
 
-void UHealthComponent::BeginPlay()
+void UHealthComponent::StartDeath()
 {
-	Super::BeginPlay();	
+	if (DeathState != EDeathState::NotDead)
+	{
+		return;
+	}
+	
+	DeathState = EDeathState::DeathStarted;
+	OnDeathStateStarted.Broadcast();
+	GetOwner()->ForceNetUpdate();
 }
 
 void UHealthComponent::OnRep_DeathState(EDeathState OldDeathState)
 {
+	if (DeathState == EDeathState::DeathStarted)
+	{
+		OnDeathStateStarted.Broadcast();
+	}
 }
 
 void UHealthComponent::OnRep_Health(float OldValue)

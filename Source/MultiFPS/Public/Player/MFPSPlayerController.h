@@ -24,6 +24,8 @@ public:
 	virtual void AcknowledgePossession(APawn* P) override;
 	virtual void OnRep_Pawn() override;
 	
+	bool bPawnAlive;
+	
 protected:
 	virtual void BeginPlay() override;
 	virtual void OnPossess(APawn* InPawn) override;

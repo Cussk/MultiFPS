@@ -12,7 +12,7 @@
 
 AMFPSPlayerController::AMFPSPlayerController()
 {
-
+	bPawnAlive = true;
 }
 
 void AMFPSPlayerController::BeginPlay()
@@ -84,6 +84,8 @@ void AMFPSPlayerController::SetupFPSCharacter(APawn* InPawn)
 
 void AMFPSPlayerController::InputMove(const FInputActionValue& InputActionValue)
 {
+	if (!bPawnAlive) return;
+	
 	const FVector2D InputAxisVector = InputActionValue.Get<FVector2D>();
 	const FRotator Rotation = GetControlRotation();
 	const FRotator YawRotation(0.0f, Rotation.Yaw, 0.0f);
@@ -101,6 +103,8 @@ void AMFPSPlayerController::InputMove(const FInputActionValue& InputActionValue)
 
 void AMFPSPlayerController::InputLook(const FInputActionValue& InputActionValue)
 {
+	if (!bPawnAlive) return;
+	
 	const FVector2D InputAxisVector = InputActionValue.Get<FVector2D>();
 	
 	AddYawInput(InputAxisVector.X);
@@ -109,6 +113,8 @@ void AMFPSPlayerController::InputLook(const FInputActionValue& InputActionValue)
 
 void AMFPSPlayerController::InputJump()
 {
+	if (!bPawnAlive) return;
+	
 	if (!IsValid(MFPSCharacter))
 	{
 		return;
@@ -132,6 +138,8 @@ void AMFPSPlayerController::InputJump()
 
 void AMFPSPlayerController::InputCrouch()
 {
+	if (!bPawnAlive) return;
+	
 	if (!IsValid(MFPSCharacter))
 	{
 		return;
@@ -146,6 +154,8 @@ void AMFPSPlayerController::InputCrouch()
 
 void AMFPSPlayerController::InputCycleWeapon()
 {
+	if (!bPawnAlive) return;
+	
 	if (CombatComponent)
 	{
 		CombatComponent->InitiateCycleWeapon();
@@ -154,6 +164,8 @@ void AMFPSPlayerController::InputCycleWeapon()
 
 void AMFPSPlayerController::InputReloadWeapon()
 {
+	if (!bPawnAlive) return;
+	
 	if (CombatComponent)
 	{
 		CombatComponent->InitiateReloadWeapon();
@@ -162,6 +174,8 @@ void AMFPSPlayerController::InputReloadWeapon()
 
 void AMFPSPlayerController::InputFireWeapon_Pressed()
 {
+	if (!bPawnAlive) return;
+	
 	if (CombatComponent)
 	{
 		CombatComponent->InitiateFireWeapon_Pressed();
@@ -170,6 +184,8 @@ void AMFPSPlayerController::InputFireWeapon_Pressed()
 
 void AMFPSPlayerController::InputFireWeapon_Released()
 {
+	if (!bPawnAlive) return;
+	
 	if (CombatComponent)
 	{
 		CombatComponent->InitiateFireWeapon_Released();
@@ -178,6 +194,8 @@ void AMFPSPlayerController::InputFireWeapon_Released()
 
 void AMFPSPlayerController::InputAimWeapon_Pressed()
 {
+	if (!bPawnAlive) return;
+	
 	if (CombatComponent)
 	{
 		CombatComponent->InitiateAim_Pressed();
@@ -186,6 +204,8 @@ void AMFPSPlayerController::InputAimWeapon_Pressed()
 
 void AMFPSPlayerController::InputAimWeapon_Released()
 {
+	if (!bPawnAlive) return;
+	
 	if (CombatComponent)
 	{
 		CombatComponent->InitiateAim_Released();
