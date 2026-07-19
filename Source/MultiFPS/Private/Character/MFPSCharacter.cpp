@@ -3,6 +3,7 @@
 
 #include "Character/MFPSCharacter.h"
 
+#include "TimerManager.h"
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -10,8 +11,10 @@
 #include "Components/HealthComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Data/WeaponData.h"
+#include "Game/MFPSGameModeBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "MultiFPS/MultiFPS.h"
 #include "Player/MFPSPlayerController.h"
@@ -62,6 +65,7 @@ AMFPSCharacter::AMFPSCharacter()
 	DefaultFOV = 90.0f;
 	TurningStatus = ETurnInPlace::NotTurning;
 	bWeaponFirstReplicated = false;
+	RespawnTime = 3.0f;
 }
 
 void AMFPSCharacter::BeginPlay()
@@ -148,6 +152,7 @@ void AMFPSCharacter::OnDeathStarted()
 	if (HasAuthority())
 	{
 		CombatComponent->DestroyInventory();
+		GetWorld()->GetTimerManager().SetTimer(DeathTimer, this, &AMFPSCharacter::DeathTimerFinished, RespawnTime, false);
 	}
 	
 	if (GetNetMode() != NM_DedicatedServer)
@@ -168,6 +173,15 @@ void AMFPSCharacter::OnDeathStarted()
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(MFPSTraceChannels::ECC_Weapon, ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(MFPSTraceChannels::ECC_Weapon, ECR_Ignore);
+}
+
+void AMFPSCharacter::DeathTimerFinished()
+{
+	AMFPSGameModeBase* GameMode = Cast<AMFPSGameModeBase>(UGameplayStatics::GetGameMode(this));
+	if (IsValid(GameMode))
+	{
+		GameMode->RequestRespawn(this, GetController());
+	}	
 }
 
 void AMFPSCharacter::CalculateFABRIKSocketTransforms()

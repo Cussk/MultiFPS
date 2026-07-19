@@ -13,4 +13,7 @@ UCLASS()
 class MULTIFPS_API AMFPSGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
+	
+public:	
+	void RequestRespawn(ACharacter* Character, AController* Controller);
 };

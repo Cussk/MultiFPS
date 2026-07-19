@@ -64,6 +64,9 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "MFPS|HitReact")
 	TArray<TObjectPtr<UAnimMontage>> HitReacts;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "MFPS|Respawn")
+	float RespawnTime;
 
 protected:
 	UFUNCTION(NetMulticast, Unreliable)
@@ -102,16 +105,19 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "MFPS|TurnInPlace")
 	float TurnSpeed = 4.0f;
 
-private:		
+private:			
+	void CalculateFABRIKSocketTransforms();
+	void CalculateTurnInPlaceParameters(float DeltaTime);
+	
+	void TurnInPlace(float DeltaTime);
+	
+	void DeathTimerFinished();
+	
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USpringArmComponent> SpringArmComponent;
 	
 	bool bWeaponFirstReplicated;
 	FRotator StartingAimRotation;
 	float InterpAOYaw;
-	
-	void CalculateFABRIKSocketTransforms();
-	void CalculateTurnInPlaceParameters(float DeltaTime);
-	
-	void TurnInPlace(float DeltaTime);
+	FTimerHandle DeathTimer;
 };
